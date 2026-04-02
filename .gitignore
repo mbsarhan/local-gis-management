@@ -1,0 +1,36 @@
+# 🔐 Environment variables (IMPORTANT)
+.env
+.env.*
+
+# 🧱 Build outputs
+bin/
+obj/
+
+# 👤 User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# 🧠 Visual Studio / VS Code
+.vs/
+.vscode/
+
+# 🧪 Test results
+TestResults/
+
+# 📦 NuGet
+*.nupkg
+packages/
+.nuget/
+
+# 🗄️ Database / local files
+*.mdf
+*.ldf
+
+# 📄 Logs
+*.log
+
+# 🧹 OS junk
+.DS_Store
+Thumbs.db
