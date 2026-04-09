@@ -1,0 +1,21 @@
+import 'reflect-metadata';
+import { NestFactory }            from '@nestjs/core';
+import { AppModule }              from './app.module';
+import { GlobalExceptionFilter }  from './shared/filters/global-exception.filter';
+
+async function bootstrap() {
+    const app = await NestFactory.create(AppModule);
+
+    // Global prefix — all routes will be /api/...
+    app.setGlobalPrefix('api');
+
+    // Global exception filter — handles all errors consistently
+    app.useGlobalFilters(new GlobalExceptionFilter());
+
+    const port = process.env.PORT || 3000;
+    await app.listen(port);
+
+    console.log(`Server running on port ${port}`);
+}
+
+bootstrap();
