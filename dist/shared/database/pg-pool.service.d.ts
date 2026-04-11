@@ -6,4 +6,6 @@ export declare class PgPoolService implements OnModuleDestroy {
     callFunction(funcName: string, params?: any[]): Promise<any[]>;
     callFunctionScalar(funcName: string, params?: any[]): Promise<any>;
     query(sql: string, params?: any[]): Promise<any[]>;
+    quoteIdentifier(value: string): string;
+    quoteLiteral(value: string): string;
 }

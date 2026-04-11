@@ -8,12 +8,12 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersModule = void 0;
 const common_1 = require("@nestjs/common");
-const config_service_1 = require("../../shared/config/config.service");
 const jwt_1 = require("@nestjs/jwt");
 const users_controller_1 = require("./presentation/users.controller");
-const users_raw_sql_repository_1 = require("./infrastructure/raw-sql/users.raw-sql.repository");
+const users_prisma_repository_1 = require("./infrastructure/prisma/users.prisma.repository");
 const users_repository_interface_1 = require("./domain/repositories/users.repository.interface");
 const token_service_1 = require("../../shared/services/token.service");
+const config_service_1 = require("../../shared/config/config.service");
 const auth_guard_1 = require("../../shared/guards/auth.guard");
 const refresh_token_guard_1 = require("../../shared/guards/refresh-token.guard");
 const login_use_case_1 = require("./application/use-cases/login.use-case");
@@ -46,10 +46,10 @@ exports.UsersModule = UsersModule = __decorate([
         providers: [
             {
                 provide: users_repository_interface_1.USERS_REPOSITORY,
-                useClass: users_raw_sql_repository_1.UsersRawSqlRepository,
+                useClass: users_prisma_repository_1.UsersPrismaRepository,
             },
-            config_service_1.ConfigService,
             token_service_1.TokenService,
+            config_service_1.ConfigService,
             auth_guard_1.AuthGuard,
             refresh_token_guard_1.RefreshTokenGuard,
             ...useCases,

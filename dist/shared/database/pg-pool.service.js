@@ -41,6 +41,12 @@ let PgPoolService = class PgPoolService {
         const result = await this.pool.query(sql, params);
         return result.rows;
     }
+    quoteIdentifier(value) {
+        return '"' + value.replace(/"/g, '""') + '"';
+    }
+    quoteLiteral(value) {
+        return "'" + value.replace(/'/g, "''") + "'";
+    }
 };
 exports.PgPoolService = PgPoolService;
 exports.PgPoolService = PgPoolService = __decorate([

@@ -1,10 +1,10 @@
 import { Module }            from '@nestjs/common';
-import { ConfigService } from '../../shared/config/config.service';
 import { JwtModule }         from '@nestjs/jwt';
 import { UsersController }         from './presentation/users.controller';
-import { UsersRawSqlRepository }   from './infrastructure/raw-sql/users.raw-sql.repository';
+import { UsersPrismaRepository }   from './infrastructure/prisma/users.prisma.repository';
 import { USERS_REPOSITORY }        from './domain/repositories/users.repository.interface';
 import { TokenService }            from '../../shared/services/token.service';
+import { ConfigService }           from '../../shared/config/config.service';
 import { AuthGuard }               from '../../shared/guards/auth.guard';
 import { RefreshTokenGuard }       from '../../shared/guards/refresh-token.guard';
 import { LoginUseCase }            from './application/use-cases/login.use-case';
@@ -33,12 +33,14 @@ const useCases = [
     imports: [JwtModule.register({})],
     controllers: [UsersController],
     providers: [
+        // Swapped from UsersRawSqlRepository to UsersPrismaRepository
+        // This is the only line that changed to switch implementations
         {
             provide:  USERS_REPOSITORY,
-            useClass: UsersRawSqlRepository,
+            useClass: UsersPrismaRepository,
         },
-        ConfigService,
         TokenService,
+        ConfigService,
         AuthGuard,
         RefreshTokenGuard,
         ...useCases,

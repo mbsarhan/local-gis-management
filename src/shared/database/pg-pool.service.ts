@@ -46,4 +46,20 @@ export class PgPoolService implements OnModuleDestroy {
         const result = await this.pool.query(sql, params);
         return result.rows;
     }
+
+    /**
+     * Safely quote a PostgreSQL identifier (table name, role name, column name)
+     * Equivalent to %I in PostgreSQL's format()
+     */
+    quoteIdentifier(value: string): string {
+        return '"' + value.replace(/"/g, '""') + '"';
+    }
+
+    /**
+     * Safely quote a PostgreSQL string literal (values, passwords)
+     * Equivalent to %L in PostgreSQL's format()
+     */
+    quoteLiteral(value: string): string {
+        return "'" + value.replace(/'/g, "''") + "'";
+    }
 }
