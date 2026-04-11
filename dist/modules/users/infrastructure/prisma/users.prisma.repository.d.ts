@@ -5,6 +5,7 @@ export declare class UsersPrismaRepository implements IUsersRepository {
     private readonly prisma;
     private readonly pgPool;
     constructor(prisma: PrismaService, pgPool: PgPoolService);
+    private hashPassword;
     login(username: string, password: string): Promise<{
         u_id: number;
         u_name: string;

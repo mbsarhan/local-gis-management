@@ -2,6 +2,7 @@ import { Injectable, BadRequestException, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../../../../shared/database/prisma.service';
 import { PgPoolService } from '../../../../shared/database/pg-pool.service';
 import { IUsersRepository } from '../../domain/repositories/users.repository.interface';
+import { UsersQueries } from './users.queries';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -12,25 +13,26 @@ export class UsersPrismaRepository implements IUsersRepository {
         private readonly pgPool: PgPoolService,
     ) {}
 
+    // ── Helpers ───────────────────────────────────────────────────────────
+
+    private hashPassword(password: string): string {
+        return crypto.createHash('md5').update(password).digest('hex');
+    }
+
     // ── Auth ──────────────────────────────────────────────────────────────
 
     async login(username: string, password: string) {
-        const hashedPassword = crypto
-            .createHash('md5')
-            .update(password)
-            .digest('hex');
-
         const user = await this.prisma.user.findFirst({
-            where:   { username, password: hashedPassword, isactive: true },
+            where:   { username, password: this.hashPassword(password), isactive: true },
             include: { userType: true },
         });
 
         if (!user) return null;
 
         return {
-            u_id:          user.id,
-            u_name:        user.name,
-            u_token:       user.token,
+            u_id:           user.id,
+            u_name:         user.name,
+            u_token:        user.token,
             u_id_user_type: user.id_user_type,
             name_user_type: user.userType?.name,
         };
@@ -39,8 +41,8 @@ export class UsersPrismaRepository implements IUsersRepository {
     // ── Read ──────────────────────────────────────────────────────────────
 
     async findAll(token: string) {
-        // get_all_users has complex group-based access logic — keep as raw SQL
-        return this.pgPool.callFunction('public.get_all_users', [token]);
+        const { sql, params } = UsersQueries.getAllUsers(token);
+        return this.pgPool.query(sql, params);
     }
 
     // ── Create ────────────────────────────────────────────────────────────
@@ -53,7 +55,6 @@ export class UsersPrismaRepository implements IUsersRepository {
         idUserType: number,
         idGroup?: number,
     ): Promise<number> {
-        // Validate user type exists
         const userTypeExists = await this.prisma.userType.findUnique({
             where: { id: idUserType },
         });
@@ -61,17 +62,12 @@ export class UsersPrismaRepository implements IUsersRepository {
             throw new BadRequestException('User type not found');
         }
 
-        const hashedPassword = crypto
-            .createHash('md5')
-            .update(password)
-            .digest('hex');
-
-        // 1. Insert the user row via Prisma
+        // 1. Insert user row via Prisma
         const user = await this.prisma.user.create({
             data: {
                 name,
                 username,
-                password: hashedPassword,
+                password: this.hashPassword(password),
                 isactive:     true,
                 id_user_type: idUserType,
                 id_group:     idGroup ?? null,
@@ -80,11 +76,12 @@ export class UsersPrismaRepository implements IUsersRepository {
             },
         });
 
-        // 2. Create the actual PostgreSQL DB role — must stay as raw SQL
-        await this.pgPool.query(
-            `CREATE ROLE ${this.pgPool.quoteIdentifier(username)} WITH LOGIN PASSWORD ${this.pgPool.quoteLiteral(password)}`,
-            []
+        // 2. Create DB role — must stay raw SQL
+        const { sql, params } = UsersQueries.createRole(
+            this.pgPool.quoteIdentifier(username),
+            this.pgPool.quoteLiteral(password),
         );
+        await this.pgPool.query(sql, params);
 
         return user.id;
     }
@@ -109,11 +106,11 @@ export class UsersPrismaRepository implements IUsersRepository {
             data:  { isactive: false },
         });
 
-        // 2. Revoke DB login — must stay as raw SQL
-        await this.pgPool.query(
-            `ALTER ROLE ${this.pgPool.quoteIdentifier(user.username)} NOLOGIN`,
-            []
+        // 2. Revoke DB login — must stay raw SQL
+        const { sql, params } = UsersQueries.alterRoleNoLogin(
+            this.pgPool.quoteIdentifier(user.username),
         );
+        await this.pgPool.query(sql, params);
 
         return idUser;
     }
@@ -138,11 +135,11 @@ export class UsersPrismaRepository implements IUsersRepository {
             data:  { isactive: true },
         });
 
-        // 2. Restore DB login — must stay as raw SQL
-        await this.pgPool.query(
-            `ALTER ROLE ${this.pgPool.quoteIdentifier(user.username)} LOGIN`,
-            []
+        // 2. Restore DB login — must stay raw SQL
+        const { sql, params } = UsersQueries.alterRoleLogin(
+            this.pgPool.quoteIdentifier(user.username),
         );
+        await this.pgPool.query(sql, params);
 
         return idUser;
     }
@@ -161,22 +158,18 @@ export class UsersPrismaRepository implements IUsersRepository {
             throw new NotFoundException('User not found or inactive');
         }
 
-        const hashedPassword = crypto
-            .createHash('md5')
-            .update(newPassword)
-            .digest('hex');
-
-        // 1. Update password in users table via Prisma
+        // 1. Update password via Prisma
         await this.prisma.user.update({
             where: { id: idUser },
-            data:  { password: hashedPassword },
+            data:  { password: this.hashPassword(newPassword) },
         });
 
-        // 2. Update DB role password — must stay as raw SQL
-        await this.pgPool.query(
-            `ALTER ROLE ${this.pgPool.quoteIdentifier(user.username)} WITH PASSWORD ${this.pgPool.quoteLiteral(newPassword)}`,
-            []
+        // 2. Update DB role password — must stay raw SQL
+        const { sql, params } = UsersQueries.alterRolePassword(
+            this.pgPool.quoteIdentifier(user.username),
+            this.pgPool.quoteLiteral(newPassword),
         );
+        await this.pgPool.query(sql, params);
 
         return idUser;
     }

@@ -13,19 +13,19 @@ exports.UsersPrismaRepository = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../../../shared/database/prisma.service");
 const pg_pool_service_1 = require("../../../../shared/database/pg-pool.service");
+const users_queries_1 = require("./users.queries");
 const crypto = require("crypto");
 let UsersPrismaRepository = class UsersPrismaRepository {
     constructor(prisma, pgPool) {
         this.prisma = prisma;
         this.pgPool = pgPool;
     }
+    hashPassword(password) {
+        return crypto.createHash('md5').update(password).digest('hex');
+    }
     async login(username, password) {
-        const hashedPassword = crypto
-            .createHash('md5')
-            .update(password)
-            .digest('hex');
         const user = await this.prisma.user.findFirst({
-            where: { username, password: hashedPassword, isactive: true },
+            where: { username, password: this.hashPassword(password), isactive: true },
             include: { userType: true },
         });
         if (!user)
@@ -39,7 +39,8 @@ let UsersPrismaRepository = class UsersPrismaRepository {
         };
     }
     async findAll(token) {
-        return this.pgPool.callFunction('public.get_all_users', [token]);
+        const { sql, params } = users_queries_1.UsersQueries.getAllUsers(token);
+        return this.pgPool.query(sql, params);
     }
     async addUser(idWho, name, username, password, idUserType, idGroup) {
         const userTypeExists = await this.prisma.userType.findUnique({
@@ -48,15 +49,11 @@ let UsersPrismaRepository = class UsersPrismaRepository {
         if (!userTypeExists) {
             throw new common_1.BadRequestException('User type not found');
         }
-        const hashedPassword = crypto
-            .createHash('md5')
-            .update(password)
-            .digest('hex');
         const user = await this.prisma.user.create({
             data: {
                 name,
                 username,
-                password: hashedPassword,
+                password: this.hashPassword(password),
                 isactive: true,
                 id_user_type: idUserType,
                 id_group: idGroup ?? null,
@@ -64,7 +61,8 @@ let UsersPrismaRepository = class UsersPrismaRepository {
                 date: new Date(),
             },
         });
-        await this.pgPool.query(`CREATE ROLE ${this.pgPool.quoteIdentifier(username)} WITH LOGIN PASSWORD ${this.pgPool.quoteLiteral(password)}`, []);
+        const { sql, params } = users_queries_1.UsersQueries.createRole(this.pgPool.quoteIdentifier(username), this.pgPool.quoteLiteral(password));
+        await this.pgPool.query(sql, params);
         return user.id;
     }
     async deactivateUser(idWho, idUser) {
@@ -81,7 +79,8 @@ let UsersPrismaRepository = class UsersPrismaRepository {
             where: { id: idUser },
             data: { isactive: false },
         });
-        await this.pgPool.query(`ALTER ROLE ${this.pgPool.quoteIdentifier(user.username)} NOLOGIN`, []);
+        const { sql, params } = users_queries_1.UsersQueries.alterRoleNoLogin(this.pgPool.quoteIdentifier(user.username));
+        await this.pgPool.query(sql, params);
         return idUser;
     }
     async reactivateUser(idWho, idUser) {
@@ -98,7 +97,8 @@ let UsersPrismaRepository = class UsersPrismaRepository {
             where: { id: idUser },
             data: { isactive: true },
         });
-        await this.pgPool.query(`ALTER ROLE ${this.pgPool.quoteIdentifier(user.username)} LOGIN`, []);
+        const { sql, params } = users_queries_1.UsersQueries.alterRoleLogin(this.pgPool.quoteIdentifier(user.username));
+        await this.pgPool.query(sql, params);
         return idUser;
     }
     async changePassword(idWho, idUser, newPassword) {
@@ -111,15 +111,12 @@ let UsersPrismaRepository = class UsersPrismaRepository {
         if (!user) {
             throw new common_1.NotFoundException('User not found or inactive');
         }
-        const hashedPassword = crypto
-            .createHash('md5')
-            .update(newPassword)
-            .digest('hex');
         await this.prisma.user.update({
             where: { id: idUser },
-            data: { password: hashedPassword },
+            data: { password: this.hashPassword(newPassword) },
         });
-        await this.pgPool.query(`ALTER ROLE ${this.pgPool.quoteIdentifier(user.username)} WITH PASSWORD ${this.pgPool.quoteLiteral(newPassword)}`, []);
+        const { sql, params } = users_queries_1.UsersQueries.alterRolePassword(this.pgPool.quoteIdentifier(user.username), this.pgPool.quoteLiteral(newPassword));
+        await this.pgPool.query(sql, params);
         return idUser;
     }
     async changeUserType(idWho, idUser, idUserType) {

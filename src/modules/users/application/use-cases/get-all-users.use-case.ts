@@ -1,6 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { IUsersRepository, USERS_REPOSITORY } from '../../domain/repositories/users.repository.interface';
 import { PgPoolService } from '../../../../shared/database/pg-pool.service';
+import { UsersQueries } from '../../infrastructure/prisma/users.queries';
 
 @Injectable()
 export class GetAllUsersUseCase {
@@ -11,11 +12,9 @@ export class GetAllUsersUseCase {
     ) {}
 
     async execute(userId: number) {
-        // get_all_users still uses DB token internally, so we fetch it
-        const rows = await this.pgPool.query(
-            'SELECT token FROM users WHERE id = $1',
-            [userId]
-        );
+        // Fetch the DB token using userId — get_all_users still needs it internally
+        const { sql, params } = UsersQueries.getTokenByUserId(userId);
+        const rows  = await this.pgPool.query(sql, params);
         const token = rows[0]?.token;
         return this.usersRepository.findAll(token);
     }

@@ -16,13 +16,15 @@ exports.GetAllUsersUseCase = void 0;
 const common_1 = require("@nestjs/common");
 const users_repository_interface_1 = require("../../domain/repositories/users.repository.interface");
 const pg_pool_service_1 = require("../../../../shared/database/pg-pool.service");
+const users_queries_1 = require("../../infrastructure/prisma/users.queries");
 let GetAllUsersUseCase = class GetAllUsersUseCase {
     constructor(usersRepository, pgPool) {
         this.usersRepository = usersRepository;
         this.pgPool = pgPool;
     }
     async execute(userId) {
-        const rows = await this.pgPool.query('SELECT token FROM users WHERE id = $1', [userId]);
+        const { sql, params } = users_queries_1.UsersQueries.getTokenByUserId(userId);
+        const rows = await this.pgPool.query(sql, params);
         const token = rows[0]?.token;
         return this.usersRepository.findAll(token);
     }
