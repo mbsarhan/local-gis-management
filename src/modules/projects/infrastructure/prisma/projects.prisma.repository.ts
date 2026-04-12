@@ -172,7 +172,7 @@ export class ProjectsPrismaRepository implements IProjectsRepository {
     async hasPrivilege(userId: number, planBoundaryId: number): Promise<boolean> {
         const privilege = await this.prisma.userPrivilege.findFirst({
             where: {
-                id_user:         userId,
+                id_user:          userId,
                 id_plan_boundary: planBoundaryId,
             },
         });
