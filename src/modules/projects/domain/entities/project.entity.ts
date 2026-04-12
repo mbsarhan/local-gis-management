@@ -44,7 +44,8 @@ export class Project {
     }
 
     canAssignTechnician1(): boolean {
-        return this.isStatus(ProjectStatus.MANAGER_WORKING);
+        return this.isStatus(ProjectStatus.MANAGER_WORKING) || 
+               this.isStatus(ProjectStatus.RETURNED_TECHNICIAN_1);
     }
 
     canTechnician1Start(): boolean {
