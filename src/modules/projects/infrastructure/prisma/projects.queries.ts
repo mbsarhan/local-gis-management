@@ -37,14 +37,14 @@ export const ProjectsQueries = {
 
     hasOtherActiveProjects: (userId: number, planBoundaryId: number, excludeProjectId: number) => ({
         sql: `
-            SELECT COUNT(*) AS count
-            FROM regulatory_area_projects
-            WHERE id_plan_boundary = $1
-              AND id != $2
-              AND id_project_status NOT IN (12)
-              AND (id_drawer_1 = $3 OR id_drawer_2 = $3)
+        SELECT COUNT(*) AS count
+        FROM regulatory_area_projects
+        WHERE (id_drawer_1 = $1 OR id_drawer_2 = $1)
+          AND id_plan_boundary = $2
+          AND id != $3
+          AND id_project_status NOT IN (12)
         `,
-        params: [planBoundaryId, excludeProjectId, userId],
+        params: [userId, planBoundaryId, excludeProjectId],
     }),
 
 };
