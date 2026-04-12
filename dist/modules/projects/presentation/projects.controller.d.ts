@@ -23,17 +23,35 @@ export declare class ProjectsController {
     private readonly returnToTechnician1UseCase;
     private readonly managerConfirmUseCase;
     constructor(createProjectUseCase: CreateProjectUseCase, getProjectsUseCase: GetProjectsUseCase, startProjectUseCase: StartProjectUseCase, assignTechnician1UseCase: AssignTechnician1UseCase, technician1StartUseCase: Technician1StartUseCase, technician1ConfirmUseCase: Technician1ConfirmUseCase, assignTechnician2UseCase: AssignTechnician2UseCase, technician2StartUseCase: Technician2StartUseCase, technician2ConfirmUseCase: Technician2ConfirmUseCase, returnToTechnician1UseCase: ReturnToTechnician1UseCase, managerConfirmUseCase: ManagerConfirmUseCase);
-    getProjects(): Promise<any>;
+    getProjects(): Promise<any[]>;
     createProject(req: any, dto: CreateProjectDto): Promise<{
         id: number;
     }>;
-    startProject(req: any, id: number): Promise<any>;
-    assignTechnician1(req: any, id: number, dto: AssignTechnician1Dto): Promise<any>;
-    technician1Start(req: any, id: number): Promise<any>;
-    technician1Confirm(req: any, id: number): Promise<any>;
-    assignTechnician2(req: any, id: number, dto: AssignTechnician2Dto): Promise<any>;
-    technician2Start(req: any, id: number): Promise<any>;
-    technician2Confirm(req: any, id: number): Promise<any>;
-    returnToTechnician1(req: any, id: number): Promise<any>;
-    managerConfirm(req: any, id: number): Promise<any>;
+    startProject(req: any, id: number): Promise<{
+        id: number;
+    }>;
+    assignTechnician1(req: any, id: number, dto: AssignTechnician1Dto): Promise<{
+        id: number;
+    }>;
+    technician1Start(req: any, id: number): Promise<{
+        id: number;
+    }>;
+    technician1Confirm(req: any, id: number): Promise<{
+        id: number;
+    }>;
+    assignTechnician2(req: any, id: number, dto: AssignTechnician2Dto): Promise<{
+        id: number;
+    }>;
+    technician2Start(req: any, id: number): Promise<{
+        id: number;
+    }>;
+    technician2Confirm(req: any, id: number): Promise<{
+        id: number;
+    }>;
+    returnToTechnician1(req: any, id: number): Promise<{
+        id: number;
+    }>;
+    managerConfirm(req: any, id: number): Promise<{
+        id: number;
+    }>;
 }

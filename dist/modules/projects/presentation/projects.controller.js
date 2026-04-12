@@ -11,7 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProjectsController = void 0;
 const common_1 = require("@nestjs/common");
@@ -169,6 +168,16 @@ __decorate([
 exports.ProjectsController = ProjectsController = __decorate([
     (0, common_1.Controller)('projects'),
     (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
-    __metadata("design:paramtypes", [create_project_use_case_1.CreateProjectUseCase, typeof (_a = typeof get_projects_use_case_1.GetProjectsUseCase !== "undefined" && get_projects_use_case_1.GetProjectsUseCase) === "function" ? _a : Object, typeof (_b = typeof start_project_use_case_1.StartProjectUseCase !== "undefined" && start_project_use_case_1.StartProjectUseCase) === "function" ? _b : Object, typeof (_c = typeof assign_technician_1_use_case_1.AssignTechnician1UseCase !== "undefined" && assign_technician_1_use_case_1.AssignTechnician1UseCase) === "function" ? _c : Object, typeof (_d = typeof technician_1_start_use_case_1.Technician1StartUseCase !== "undefined" && technician_1_start_use_case_1.Technician1StartUseCase) === "function" ? _d : Object, typeof (_e = typeof technician_1_confirm_use_case_1.Technician1ConfirmUseCase !== "undefined" && technician_1_confirm_use_case_1.Technician1ConfirmUseCase) === "function" ? _e : Object, typeof (_f = typeof assign_technician_2_use_case_1.AssignTechnician2UseCase !== "undefined" && assign_technician_2_use_case_1.AssignTechnician2UseCase) === "function" ? _f : Object, typeof (_g = typeof technician_2_start_use_case_1.Technician2StartUseCase !== "undefined" && technician_2_start_use_case_1.Technician2StartUseCase) === "function" ? _g : Object, typeof (_h = typeof technician_2_confirm_use_case_1.Technician2ConfirmUseCase !== "undefined" && technician_2_confirm_use_case_1.Technician2ConfirmUseCase) === "function" ? _h : Object, typeof (_j = typeof return_to_technician_1_use_case_1.ReturnToTechnician1UseCase !== "undefined" && return_to_technician_1_use_case_1.ReturnToTechnician1UseCase) === "function" ? _j : Object, typeof (_k = typeof manager_confirm_use_case_1.ManagerConfirmUseCase !== "undefined" && manager_confirm_use_case_1.ManagerConfirmUseCase) === "function" ? _k : Object])
+    __metadata("design:paramtypes", [create_project_use_case_1.CreateProjectUseCase,
+        get_projects_use_case_1.GetProjectsUseCase,
+        start_project_use_case_1.StartProjectUseCase,
+        assign_technician_1_use_case_1.AssignTechnician1UseCase,
+        technician_1_start_use_case_1.Technician1StartUseCase,
+        technician_1_confirm_use_case_1.Technician1ConfirmUseCase,
+        assign_technician_2_use_case_1.AssignTechnician2UseCase,
+        technician_2_start_use_case_1.Technician2StartUseCase,
+        technician_2_confirm_use_case_1.Technician2ConfirmUseCase,
+        return_to_technician_1_use_case_1.ReturnToTechnician1UseCase,
+        manager_confirm_use_case_1.ManagerConfirmUseCase])
 ], ProjectsController);
 //# sourceMappingURL=projects.controller.js.map

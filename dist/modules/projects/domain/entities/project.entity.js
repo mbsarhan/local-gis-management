@@ -41,7 +41,8 @@ class Project {
         return this.isStatus(ProjectStatus.NEW);
     }
     canAssignTechnician1() {
-        return this.isStatus(ProjectStatus.MANAGER_WORKING);
+        return this.isStatus(ProjectStatus.MANAGER_WORKING) ||
+            this.isStatus(ProjectStatus.RETURNED_TECHNICIAN_1);
     }
     canTechnician1Start() {
         return this.isStatus(ProjectStatus.ASSIGNED_TECHNICIAN_1);
