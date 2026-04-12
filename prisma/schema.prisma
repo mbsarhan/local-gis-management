@@ -8,7 +8,7 @@ datasource db {
 }
 
 model User {
-  id           Int       @id @default(autoincrement())
+  id            Int       @id @default(autoincrement())
   name          String?
   username      String?
   password      String?
@@ -22,6 +22,10 @@ model User {
 
   userType UserType? @relation(fields: [id_user_type], references: [id])
   group    Group?    @relation(fields: [id_group], references: [id])
+
+  projectsAsManager RegulatoryAreaProject[] @relation("ProjectManager")
+  projectsAsDrawer1 RegulatoryAreaProject[] @relation("Drawer1")
+  projectsAsDrawer2 RegulatoryAreaProject[] @relation("Drawer2")
 
   @@map("users")
 }
@@ -42,4 +46,64 @@ model Group {
   users  User[]
 
   @@map("group")
+}
+
+model RegulatoryAreaProject {
+  id                               Int       @id @default(autoincrement())
+  id_projecte_manager              Int?
+  date_assignment_projecte_manager DateTime? @db.Date
+  projecte_start_date              DateTime? @db.Date
+  projecte_end_date                DateTime? @db.Date
+  id_drawer_1                      Int?
+  date_assignment_drawer_1         DateTime? @db.Date
+  drawer_1_start_date              DateTime? @db.Date
+  drawer_1_end_date                DateTime? @db.Date
+  id_drawer_2                      Int?
+  date_assignment_drawer_2         DateTime? @db.Date
+  drawer_2_start_date              DateTime? @db.Date
+  drawer_2_end_date                DateTime? @db.Date
+  id_project_status                Int?
+  id_layer                         Int?
+  id_who                           Int?
+  id_community                     Int?
+  id_plan_boundary                 Int?
+
+  projectManager User?                        @relation("ProjectManager", fields: [id_projecte_manager], references: [id])
+  drawer1        User?                        @relation("Drawer1", fields: [id_drawer_1], references: [id])
+  drawer2        User?                        @relation("Drawer2", fields: [id_drawer_2], references: [id])
+  status         StatusRegulatoryAreaProject? @relation(fields: [id_project_status], references: [id])
+  layer          Layer?                       @relation(fields: [id_layer], references: [id])
+
+  @@map("regulatory_area_projects")
+}
+
+model StatusRegulatoryAreaProject {
+  id       Int                     @id @default(autoincrement())
+  name     String?
+  id_who   Int?
+  projects RegulatoryAreaProject[]
+
+  @@map("status_regular_area_project")
+}
+
+model Layer {
+  id       Int                     @id @default(autoincrement())
+  name     String?
+  id_who   Int?
+  projects RegulatoryAreaProject[]
+
+  @@map("layer")
+}
+
+model UserPrivilege {
+  id               Int     @id @default(autoincrement())
+  id_user          Int?
+  id_governorate   Int?
+  id_township      Int?
+  id_community     Int?
+  id_who           Int?
+  privilege_code   String?
+  id_plan_boundary Int?
+
+  @@map("user_privilege")
 }

@@ -10,6 +10,7 @@ exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const database_module_1 = require("./shared/database/database.module");
 const users_module_1 = require("./modules/users/users.module");
+const projects_module_1 = require("./modules/projects/projects.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -18,6 +19,7 @@ exports.AppModule = AppModule = __decorate([
         imports: [
             database_module_1.DatabaseModule,
             users_module_1.UsersModule,
+            projects_module_1.ProjectsModule,
         ],
     })
 ], AppModule);
