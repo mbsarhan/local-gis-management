@@ -24,7 +24,9 @@ export declare class ProjectsController {
     private readonly managerConfirmUseCase;
     constructor(createProjectUseCase: CreateProjectUseCase, getProjectsUseCase: GetProjectsUseCase, startProjectUseCase: StartProjectUseCase, assignTechnician1UseCase: AssignTechnician1UseCase, technician1StartUseCase: Technician1StartUseCase, technician1ConfirmUseCase: Technician1ConfirmUseCase, assignTechnician2UseCase: AssignTechnician2UseCase, technician2StartUseCase: Technician2StartUseCase, technician2ConfirmUseCase: Technician2ConfirmUseCase, returnToTechnician1UseCase: ReturnToTechnician1UseCase, managerConfirmUseCase: ManagerConfirmUseCase);
     getProjects(): Promise<any>;
-    createProject(req: any, dto: CreateProjectDto): Promise<any>;
+    createProject(req: any, dto: CreateProjectDto): Promise<{
+        id: number;
+    }>;
     startProject(req: any, id: number): Promise<any>;
     assignTechnician1(req: any, id: number, dto: AssignTechnician1Dto): Promise<any>;
     technician1Start(req: any, id: number): Promise<any>;
