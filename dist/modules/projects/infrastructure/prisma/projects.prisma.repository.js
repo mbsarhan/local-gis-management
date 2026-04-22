@@ -148,11 +148,15 @@ let ProjectsPrismaRepository = class ProjectsPrismaRepository {
         });
         return !!privilege;
     }
-    async grantPrivilege(userId, planBoundaryId, idWho) {
+    async grantPrivilege(userId, planBoundaryId, idWho, idGovernorate, idTownship, idCommunity, privilegeCode) {
         await this.prisma.userPrivilege.create({
             data: {
                 id_user: userId,
                 id_plan_boundary: planBoundaryId,
+                id_governorate: idGovernorate,
+                id_township: idTownship,
+                id_community: idCommunity,
+                privilege_code: privilegeCode,
                 id_who: idWho,
             },
         });
@@ -169,6 +173,21 @@ let ProjectsPrismaRepository = class ProjectsPrismaRepository {
         const { sql, params } = projects_queries_1.ProjectsQueries.hasOtherActiveProjects(userId, planBoundaryId, excludeProjectId);
         const rows = await this.pgPool.query(sql, params);
         return parseInt(rows[0]?.count) > 0;
+    }
+    async getPlanBoundaryContext(planBoundaryId) {
+        const { sql, params } = projects_queries_1.ProjectsQueries.getPlanBoundaryContext(planBoundaryId);
+        const rows = await this.pgPool.query(sql, params);
+        if (!rows[0])
+            return null;
+        const row = rows[0];
+        const parts = row.code.split('.').filter(Boolean);
+        return {
+            id_plan_boundary: row.id,
+            id_community: parseInt(parts[2]),
+            id_township: parseInt(parts[1]),
+            id_governorate: parseInt(parts[0]),
+            privilege_code: row.code,
+        };
     }
 };
 exports.ProjectsPrismaRepository = ProjectsPrismaRepository;

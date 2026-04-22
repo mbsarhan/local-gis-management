@@ -27,9 +27,13 @@ let AssignTechnician2UseCase = class AssignTechnician2UseCase {
             throw new common_1.ForbiddenException('Only the assigned project manager can assign technician 2');
         if (!project.canAssignTechnician2())
             throw new common_1.BadRequestException(`Project must be in status TECHNICIAN_1_CONFIRMED (6) to assign technician 2. Current status: ${project.idProjectStatus}`);
+        const context = await this.projectsRepository.getPlanBoundaryContext(project.idPlanBoundary);
+        if (!context) {
+            throw new common_1.BadRequestException('Plan boundary geographic context not found');
+        }
         const hasPrivilege = await this.projectsRepository.hasPrivilege(idDrawer2, project.idPlanBoundary);
         if (!hasPrivilege) {
-            await this.projectsRepository.grantPrivilege(idDrawer2, project.idPlanBoundary, userId);
+            await this.projectsRepository.grantPrivilege(idDrawer2, project.idPlanBoundary, userId, context.id_governorate, context.id_township, context.id_community, context.privilege_code);
         }
         await this.projectsRepository.assignTechnician2(projectId, idDrawer2, new Date());
         return { id: projectId };

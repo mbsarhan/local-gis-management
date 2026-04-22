@@ -11,7 +11,7 @@ export class ProjectsPrismaRepository implements IProjectsRepository {
     constructor(
         private readonly prisma: PrismaService,
         private readonly pgPool: PgPoolService,
-    ) {}
+    ) { }
 
     // ── Helpers ───────────────────────────────────────────────────────────
 
@@ -53,13 +53,13 @@ export class ProjectsPrismaRepository implements IProjectsRepository {
     ): Promise<number> {
         const project = await this.prisma.regulatoryAreaProject.create({
             data: {
-                id_projecte_manager:              idProjectManager,
+                id_projecte_manager: idProjectManager,
                 date_assignment_projecte_manager: new Date(),
-                id_project_status:                ProjectStatus.NEW,
-                id_plan_boundary:                 idPlanBoundary,
-                id_layer:                         idLayer,
-                id_community:                     null,
-                id_who:                           idWho,
+                id_project_status: ProjectStatus.NEW,
+                id_plan_boundary: idPlanBoundary,
+                id_layer: idLayer,
+                id_community: null,
+                id_who: idWho,
             },
         });
         return project.id;
@@ -72,7 +72,7 @@ export class ProjectsPrismaRepository implements IProjectsRepository {
             where: { id },
             data: {
                 projecte_start_date: startDate,
-                id_project_status:   ProjectStatus.MANAGER_WORKING,
+                id_project_status: ProjectStatus.MANAGER_WORKING,
             },
         });
     }
@@ -81,9 +81,9 @@ export class ProjectsPrismaRepository implements IProjectsRepository {
         await this.prisma.regulatoryAreaProject.update({
             where: { id },
             data: {
-                id_drawer_1:              idDrawer1,
+                id_drawer_1: idDrawer1,
                 date_assignment_drawer_1: assignmentDate,
-                id_project_status:        ProjectStatus.ASSIGNED_TECHNICIAN_1,
+                id_project_status: ProjectStatus.ASSIGNED_TECHNICIAN_1,
             },
         });
     }
@@ -93,7 +93,7 @@ export class ProjectsPrismaRepository implements IProjectsRepository {
             where: { id },
             data: {
                 drawer_1_start_date: startDate,
-                id_project_status:   ProjectStatus.TECHNICIAN_1_WORKING,
+                id_project_status: ProjectStatus.TECHNICIAN_1_WORKING,
             },
         });
     }
@@ -112,9 +112,9 @@ export class ProjectsPrismaRepository implements IProjectsRepository {
         await this.prisma.regulatoryAreaProject.update({
             where: { id },
             data: {
-                id_drawer_2:              idDrawer2,
+                id_drawer_2: idDrawer2,
                 date_assignment_drawer_2: assignmentDate,
-                id_project_status:        ProjectStatus.ASSIGNED_TECHNICIAN_2,
+                id_project_status: ProjectStatus.ASSIGNED_TECHNICIAN_2,
             },
         });
     }
@@ -124,7 +124,7 @@ export class ProjectsPrismaRepository implements IProjectsRepository {
             where: { id },
             data: {
                 drawer_2_start_date: startDate,
-                id_project_status:   ProjectStatus.TECHNICIAN_2_WORKING,
+                id_project_status: ProjectStatus.TECHNICIAN_2_WORKING,
             },
         });
     }
@@ -144,15 +144,15 @@ export class ProjectsPrismaRepository implements IProjectsRepository {
             where: { id },
             data: {
                 // Reset technician 1 and 2 fields for the new cycle
-                id_drawer_1:              null,
+                id_drawer_1: null,
                 date_assignment_drawer_1: null,
-                drawer_1_start_date:      null,
-                drawer_1_end_date:        null,
-                id_drawer_2:              null,
+                drawer_1_start_date: null,
+                drawer_1_end_date: null,
+                id_drawer_2: null,
                 date_assignment_drawer_2: null,
-                drawer_2_start_date:      null,
-                drawer_2_end_date:        null,
-                id_project_status:        ProjectStatus.RETURNED_TECHNICIAN_1,
+                drawer_2_start_date: null,
+                drawer_2_end_date: null,
+                id_project_status: ProjectStatus.RETURNED_TECHNICIAN_1,
             },
         });
     }
@@ -172,19 +172,31 @@ export class ProjectsPrismaRepository implements IProjectsRepository {
     async hasPrivilege(userId: number, planBoundaryId: number): Promise<boolean> {
         const privilege = await this.prisma.userPrivilege.findFirst({
             where: {
-                id_user:          userId,
+                id_user: userId,
                 id_plan_boundary: planBoundaryId,
             },
         });
         return !!privilege;
     }
 
-    async grantPrivilege(userId: number, planBoundaryId: number, idWho: number): Promise<void> {
+    async grantPrivilege(
+        userId: number,
+        planBoundaryId: number,
+        idWho: number,
+        idGovernorate: number,
+        idTownship: number,
+        idCommunity: number,
+        privilegeCode: string,
+    ): Promise<void> {
         await this.prisma.userPrivilege.create({
             data: {
-                id_user:          userId,
+                id_user: userId,
                 id_plan_boundary: planBoundaryId,
-                id_who:           idWho,
+                id_governorate: idGovernorate,
+                id_township: idTownship,
+                id_community: idCommunity,
+                privilege_code: privilegeCode,
+                id_who: idWho,
             },
         });
     }
@@ -192,7 +204,7 @@ export class ProjectsPrismaRepository implements IProjectsRepository {
     async revokePrivilege(userId: number, planBoundaryId: number): Promise<void> {
         await this.prisma.userPrivilege.deleteMany({
             where: {
-                id_user:          userId,
+                id_user: userId,
                 id_plan_boundary: planBoundaryId,
             },
         });
@@ -202,5 +214,23 @@ export class ProjectsPrismaRepository implements IProjectsRepository {
         const { sql, params } = ProjectsQueries.hasOtherActiveProjects(userId, planBoundaryId, excludeProjectId);
         const rows = await this.pgPool.query(sql, params);
         return parseInt(rows[0]?.count) > 0;
+    }
+
+    async getPlanBoundaryContext(planBoundaryId: number) {
+        const { sql, params } = ProjectsQueries.getPlanBoundaryContext(planBoundaryId);
+        const rows = await this.pgPool.query(sql, params);
+        if (!rows[0]) return null;
+
+        const row = rows[0];
+        const parts = row.code.split('.').filter(Boolean);
+        // parts = ['3', '160', '45', '12'] for code "3.160.45.12."
+
+        return {
+            id_plan_boundary: row.id,
+            id_community: parseInt(parts[2]),
+            id_township: parseInt(parts[1]),
+            id_governorate: parseInt(parts[0]),
+            privilege_code: row.code,  // already built, use directly
+        };
     }
 }

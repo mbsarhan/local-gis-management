@@ -7,4 +7,8 @@ export declare const ProjectsQueries: {
         sql: string;
         params: number[];
     };
+    getPlanBoundaryContext: (planBoundaryId: number) => {
+        sql: string;
+        params: number[];
+    };
 };

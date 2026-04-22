@@ -47,5 +47,9 @@ exports.ProjectsQueries = {
         `,
         params: [userId, planBoundaryId, excludeProjectId],
     }),
+    getPlanBoundaryContext: (planBoundaryId) => ({
+        sql: `SELECT id, id_community, code FROM plan_boundary WHERE id = $1`,
+        params: [planBoundaryId],
+    }),
 };
 //# sourceMappingURL=projects.queries.js.map

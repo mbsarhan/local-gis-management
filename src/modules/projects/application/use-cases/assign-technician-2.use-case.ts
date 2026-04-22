@@ -6,7 +6,7 @@ export class AssignTechnician2UseCase {
     constructor(
         @Inject(PROJECTS_REPOSITORY)
         private readonly projectsRepository: IProjectsRepository,
-    ) {}
+    ) { }
 
     async execute(userId: number, projectId: number, idDrawer2: number) {
         const project = await this.projectsRepository.findById(projectId);
@@ -19,9 +19,22 @@ export class AssignTechnician2UseCase {
         if (!project.canAssignTechnician2())
             throw new BadRequestException(`Project must be in status TECHNICIAN_1_CONFIRMED (6) to assign technician 2. Current status: ${project.idProjectStatus}`);
 
+        const context = await this.projectsRepository.getPlanBoundaryContext(project.idPlanBoundary);
+        if (!context) {
+            throw new BadRequestException('Plan boundary geographic context not found');
+        }
+
         const hasPrivilege = await this.projectsRepository.hasPrivilege(idDrawer2, project.idPlanBoundary);
         if (!hasPrivilege) {
-            await this.projectsRepository.grantPrivilege(idDrawer2, project.idPlanBoundary, userId);
+            await this.projectsRepository.grantPrivilege(
+                idDrawer2,
+                project.idPlanBoundary,
+                userId,
+                context.id_governorate,
+                context.id_township,
+                context.id_community,
+                context.privilege_code,
+            );
         }
 
         await this.projectsRepository.assignTechnician2(projectId, idDrawer2, new Date());
