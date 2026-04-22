@@ -11,6 +11,7 @@ const common_1 = require("@nestjs/common");
 const database_module_1 = require("./shared/database/database.module");
 const users_module_1 = require("./modules/users/users.module");
 const projects_module_1 = require("./modules/projects/projects.module");
+const privileges_module_1 = require("./modules/privileges/privileges.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -20,6 +21,7 @@ exports.AppModule = AppModule = __decorate([
             database_module_1.DatabaseModule,
             users_module_1.UsersModule,
             projects_module_1.ProjectsModule,
+            privileges_module_1.PrivilegesModule,
         ],
     })
 ], AppModule);
