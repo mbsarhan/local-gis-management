@@ -47,4 +47,9 @@ export const ProjectsQueries = {
         params: [userId, planBoundaryId, excludeProjectId],
     }),
 
+    getPlanBoundaryContext: (planBoundaryId: number) => ({
+        sql: `SELECT id, id_community, code FROM plan_boundary WHERE id = $1`,
+        params: [planBoundaryId],
+    }),
+
 };

@@ -21,9 +21,24 @@ export interface IProjectsRepository {
 
     // Privilege management
     hasPrivilege(userId: number, planBoundaryId: number): Promise<boolean>;
-    grantPrivilege(userId: number, planBoundaryId: number, idWho: number): Promise<void>;
+    grantPrivilege(
+        userId: number,
+        planBoundaryId: number,
+        idWho: number,
+        idGovernorate: number,
+        idTownship: number,
+        idCommunity: number,
+        privilegeCode: string,
+    ): Promise<void>;
     revokePrivilege(userId: number, planBoundaryId: number): Promise<void>;
     hasOtherActiveProjects(userId: number, planBoundaryId: number, excludeProjectId: number): Promise<boolean>;
+    getPlanBoundaryContext(planBoundaryId: number): Promise<{
+        id_plan_boundary: number;
+        id_community: number;
+        id_township: number;
+        id_governorate: number;
+        privilege_code: string;
+    } | null>;
 }
 
 export const PROJECTS_REPOSITORY = 'PROJECTS_REPOSITORY';

@@ -7,103 +7,556 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id            Int       @id @default(autoincrement())
-  name          String?
-  username      String?
-  password      String?
-  token         String?
-  refresh_token String?
-  date          DateTime? @db.Date
-  isactive      Boolean?
-  id_user_type  Int?
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model area_points {
+  id               BigInt                   @id(map: "area_points_pk") @default(autoincrement())
+  geom             Unsupported("geometry")?
+  area_points_name String
+  degree           Int?
+  id_who           Int?
+  id_community     Int
+  community        community                @relation(fields: [id_community], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model boundary {
+  id            Int                      @id @default(autoincrement())
+  geom          Unsupported("geometry")?
+  id_community  Int?
   id_who        Int?
-  id_group      Int?
-
-  userType UserType? @relation(fields: [id_user_type], references: [id])
-  group    Group?    @relation(fields: [id_group], references: [id])
-
-  projectsAsManager RegulatoryAreaProject[] @relation("ProjectManager")
-  projectsAsDrawer1 RegulatoryAreaProject[] @relation("Drawer1")
-  projectsAsDrawer2 RegulatoryAreaProject[] @relation("Drawer2")
-
-  @@map("users")
+  community     community?               @relation(fields: [id_community], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  plan_boundary plan_boundary[]
 }
 
-model UserType {
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model community {
+  id                       Int                        @id(map: "community_pk") @default(autoincrement()) @db.SmallInt
+  community_code           String
+  community_name           String
+  geom                     Unsupported("geometry")?
+  id_who                   Int?
+  id_township              Int?
+  code                     String?
+  geom1                    Unsupported("geometry")?
+  area_points              area_points[]
+  boundary                 boundary[]
+  township                 township?                  @relation(fields: [id_township], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  community_unit           community_unit[]
+  control_administration   control_administration[]
+  plan_boundary            plan_boundary[]
+  regulatory_area_projects regulatory_area_projects[]
+  roof                     roof[]
+  user_privilege           user_privilege[]
+  wall                     wall[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model community_unit {
+  id                                                      Int        @id @default(autoincrement())
+  id_unit_minimum_property_area                           Int?
+  id_unit_maximum_property_area                           Int?
+  id_unit_minimum_interface                               Int?
+  id_unit_height                                          Int?
+  id_unit_front_duties                                    Int?
+  id_unit_back_duties                                     Int?
+  id_unit_side_duties                                     Int?
+  id_community                                            Int?       @db.SmallInt
+  id_who                                                  Int?
+  community                                               community? @relation(fields: [id_community], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  unit_community_unit_id_unit_back_dutiesTounit           unit?      @relation("community_unit_id_unit_back_dutiesTounit", fields: [id_unit_back_duties], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  unit_community_unit_id_unit_front_dutiesTounit          unit?      @relation("community_unit_id_unit_front_dutiesTounit", fields: [id_unit_front_duties], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  unit_community_unit_id_unit_heightTounit                unit?      @relation("community_unit_id_unit_heightTounit", fields: [id_unit_height], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  unit_community_unit_id_unit_maximum_property_areaTounit unit?      @relation("community_unit_id_unit_maximum_property_areaTounit", fields: [id_unit_maximum_property_area], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  unit_community_unit_id_unit_minimum_interfaceTounit     unit?      @relation("community_unit_id_unit_minimum_interfaceTounit", fields: [id_unit_minimum_interface], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  unit_community_unit_id_unit_minimum_property_areaTounit unit?      @relation("community_unit_id_unit_minimum_property_areaTounit", fields: [id_unit_minimum_property_area], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  unit_community_unit_id_unit_side_dutiesTounit           unit?      @relation("community_unit_id_unit_side_dutiesTounit", fields: [id_unit_side_duties], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model control_administration {
+  id                      Int                   @id @default(autoincrement())
+  id_type_regulatory_area Int?
+  minimum_property_area   Decimal?              @db.Decimal
+  maximum_property_area   Decimal?              @db.Decimal
+  construction_ratio      Decimal?              @db.Decimal
+  minimum_interface       Decimal?              @db.Decimal
+  number_of_floors        Int?
+  height                  Decimal?              @db.Decimal
+  front_duties            Decimal?              @db.Decimal
+  back_duties             Decimal?              @db.Decimal
+  side_duties             Decimal?              @db.Decimal
+  notes                   String?
+  id_who                  Int?
+  id_community            Int?
+  height_of_ground_floors Float?
+  investment_factor       Float?
+  community               community?            @relation(fields: [id_community], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  type_regulatory_area    type_regulatory_area? @relation(fields: [id_type_regulatory_area], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users                   users?                @relation(fields: [id_who], references: [id], onUpdate: NoAction, map: "fk_control_administration_users")
+  regulatory_blocks       regulatory_blocks[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model governorate {
+  id                         Int                          @id(map: "governorate_pk") @default(autoincrement()) @db.SmallInt
+  governorate_code           String
+  governorate_name           String
+  geom                       Unsupported("geometry")?
+  id_who                     Int?
+  code                       String?
+  geom1                      Unsupported("geometry")?
+  governorate_arabic_country governorate_arabic_country[]
+  township                   township[]
+  user_privilege             user_privilege[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model governorate_arabic_country {
+  id                Int          @id @default(autoincrement())
+  id_governorate    Int?         @db.SmallInt
+  id_arabic_country Int?
+  governorate       governorate? @relation(fields: [id_governorate], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model group {
   id     Int     @id @default(autoincrement())
   name   String?
   id_who Int?
-  users  User[]
-
-  @@map("user_type")
+  users  users[]
 }
 
-model Group {
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model group_user {
+  id       Int  @id @default(autoincrement())
+  id_user  Int?
+  id_group Int?
+  id_who   Int?
+}
+
+model history {
+  id             Int       @id @default(autoincrement())
+  table_name     String?
+  operation_type String?
+  old_data       Json?
+  new_data       Json?
+  id_who         Int?
+  current_users  String?
+  date           DateTime? @db.Timestamp(6)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model interfaces {
+  id               Int               @id @default(autoincrement())
+  name_arbic       String?
+  name_eng         String?
+  id_perant        Int?
+  interfaces       interfaces?       @relation("interfacesTointerfaces", fields: [id_perant], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  other_interfaces interfaces[]      @relation("interfacesTointerfaces")
+  user_interfaces  user_interfaces[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model layer {
+  id                       Int                        @id @default(autoincrement())
+  name                     String?
+  id_who                   Int?
+  regulatory_area_projects regulatory_area_projects[]
+  user_layers              user_layers[]
+}
+
+model layer_styles {
+  id                Int       @id @default(autoincrement())
+  f_table_catalog   String?   @db.VarChar
+  f_table_schema    String?   @db.VarChar
+  f_table_name      String?   @db.VarChar
+  f_geometry_column String?   @db.VarChar
+  stylename         String?
+  styleqml          String?   @db.Xml
+  stylesld          String?   @db.Xml
+  useasdefault      Boolean?
+  description       String?
+  owner             String?   @default(dbgenerated("CURRENT_USER")) @db.VarChar(63)
+  ui                String?   @db.Xml
+  update_time       DateTime? @default(now()) @db.Timestamp(6)
+  type              String?   @db.VarChar
+}
+
+model layer_view {
+  id                        Int                         @id @default(autoincrement())
+  name_arbic                String?
+  name_eng                  String?
+  role_user_type_layer_view role_user_type_layer_view[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model name_list {
+  id         Int      @id @default(autoincrement())
+  name_arbic String?
+  name_eng   String?
+  is_show    Boolean?
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model plan_boundary {
+  id                       Int                        @id(map: "plan_boundary_pk") @default(autoincrement())
+  geom                     Unsupported("geometry")?
+  id_community             Int?
+  id_who                   Int?
+  name                     String?
+  date                     DateTime?                  @db.Date
+  code                     String?
+  id_boundary              Int?
+  geom_image               Unsupported("geometry")?
+  number                   Int?
+  boundary                 boundary?                  @relation(fields: [id_boundary], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  community                community?                 @relation(fields: [id_community], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  regulatory_area_projects regulatory_area_projects[]
+  regulatory_blocks        regulatory_blocks[]
+  road                     road[]
+  tech1_submission         tech1_submission[]
+  tech2_submission         tech2_submission[]
+  user_privilege           user_privilege[]
+}
+
+model plan_boundary_yusef {
+  id         Int                      @id @default(autoincrement())
+  name       String?
+  date       DateTime?                @db.Date
+  geom_image Unsupported("geometry")?
+  number     Int?
+}
+
+model plan_type_regulatory_area {
+  id                      Int    @id @default(autoincrement())
+  id_plan                 Int?
+  id_type_regulatory_area Int?
+  heaviness_factor        Float?
+  id_who                  Int?
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model plans {
+  id            Int         @id @default(autoincrement())
+  name          String?
+  date          DateTime?   @db.Date
+  default       Boolean?
+  id_who        Int?
+  id_plans_type Int?
+  plans_type    plans_type? @relation(fields: [id_plans_type], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model plans_type {
   id     Int     @id @default(autoincrement())
   name   String?
   id_who Int?
-  users  User[]
-
-  @@map("group")
+  plans  plans[]
 }
 
-model RegulatoryAreaProject {
-  id                               Int       @id @default(autoincrement())
-  id_projecte_manager              Int?
-  date_assignment_projecte_manager DateTime? @db.Date
-  projecte_start_date              DateTime? @db.Date
-  projecte_end_date                DateTime? @db.Date
-  id_drawer_1                      Int?
-  date_assignment_drawer_1         DateTime? @db.Date
-  drawer_1_start_date              DateTime? @db.Date
-  drawer_1_end_date                DateTime? @db.Date
-  id_drawer_2                      Int?
-  date_assignment_drawer_2         DateTime? @db.Date
-  drawer_2_start_date              DateTime? @db.Date
-  drawer_2_end_date                DateTime? @db.Date
-  id_project_status                Int?
-  id_layer                         Int?
-  id_who                           Int?
-  id_community                     Int?
-  id_plan_boundary                 Int?
-
-  projectManager User?                        @relation("ProjectManager", fields: [id_projecte_manager], references: [id])
-  drawer1        User?                        @relation("Drawer1", fields: [id_drawer_1], references: [id])
-  drawer2        User?                        @relation("Drawer2", fields: [id_drawer_2], references: [id])
-  status         StatusRegulatoryAreaProject? @relation(fields: [id_project_status], references: [id])
-  layer          Layer?                       @relation(fields: [id_layer], references: [id])
-
-  @@map("regulatory_area_projects")
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model points {
+  id   BigInt                   @id @default(autoincrement())
+  geom Unsupported("geometry")?
 }
 
-model StatusRegulatoryAreaProject {
-  id       Int                     @id @default(autoincrement())
-  name     String?
-  id_who   Int?
-  projects RegulatoryAreaProject[]
-
-  @@map("status_regular_area_project")
+model qgis_projects {
+  name     String @id
+  metadata Json?
+  content  Bytes?
 }
 
-model Layer {
-  id       Int                     @id @default(autoincrement())
-  name     String?
-  id_who   Int?
-  projects RegulatoryAreaProject[]
-
-  @@map("layer")
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model reason_rejection {
+  id     Int     @id @default(autoincrement())
+  name   String?
+  id_who Int?
 }
 
-model UserPrivilege {
-  id               Int     @id @default(autoincrement())
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model regulatory_area_projects {
+  id                                                        Int                          @id @default(autoincrement())
+  id_projecte_manager                                       Int?
+  date_assignment_projecte_manager                          DateTime?                    @db.Date
+  projecte_start_date                                       DateTime?                    @db.Date
+  projecte_end_date                                         DateTime?                    @db.Date
+  id_drawer_1                                               Int?
+  date_assignment_drawer_1                                  DateTime?                    @db.Date
+  drawer_1_start_date                                       DateTime?                    @db.Date
+  drawer_1_end_date                                         DateTime?                    @db.Date
+  id_drawer_2                                               Int?
+  date_assignment_drawer_2                                  DateTime?                    @db.Date
+  drawer_2_start_date                                       DateTime?                    @db.Date
+  drawer_2_end_date                                         DateTime?                    @db.Date
+  id_project_status                                         Int?
+  id_layer                                                  Int?
+  id_who                                                    Int?
+  id_community                                              Int?                         @db.SmallInt
+  id_plan_boundary                                          Int?
+  buffer_margin                                             Float?                       @default(0.10)
+  community                                                 community?                   @relation(fields: [id_community], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_regulatory_area_projects_id_drawer_1Tousers         users?                       @relation("regulatory_area_projects_id_drawer_1Tousers", fields: [id_drawer_1], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_regulatory_area_projects_id_drawer_2Tousers         users?                       @relation("regulatory_area_projects_id_drawer_2Tousers", fields: [id_drawer_2], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  layer                                                     layer?                       @relation(fields: [id_layer], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  plan_boundary                                             plan_boundary?               @relation(fields: [id_plan_boundary], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  status_regular_area_project                               status_regular_area_project? @relation(fields: [id_project_status], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_regulatory_area_projects_id_projecte_managerTousers users?                       @relation("regulatory_area_projects_id_projecte_managerTousers", fields: [id_projecte_manager], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tech1_submission                                          tech1_submission[]
+  tech2_submission                                          tech2_submission[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model regulatory_blocks {
+  id                        Int                      @id(map: "regulatory_blocks_pk") @default(autoincrement())
+  geom                      Unsupported("geometry")?
+  id_plan_boundary          Int
+  id_who                    Int?
+  id_control_administration Int?
+  id_regulatory_blocks      Int?
+  control_administration    control_administration?  @relation(fields: [id_control_administration], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  plan_boundary             plan_boundary            @relation(fields: [id_plan_boundary], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tech1_submission          tech1_submission[]
+  tech2_submission          tech2_submission[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model road {
+  id               Int                      @id @default(autoincrement())
+  geom             Unsupported("geometry")?
+  id_plan_boundary Int
+  road_width       Float
+  notes            String?
+  id_who           Int?
+  id_road_type     Int
+  plan_boundary    plan_boundary            @relation(fields: [id_plan_boundary], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  road_type        road_type                @relation(fields: [id_road_type], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model road_type {
+  id     Int     @id @default(autoincrement())
+  name   String?
+  id_who Int?
+  road   road[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model role_user_type_layer_view {
+  id            Int         @id @default(autoincrement())
+  id_user_type  Int?
+  id_layer_view Int?
+  insert_b      Boolean?
+  update_b      Boolean?
+  delete_b      Boolean?
+  select_b      Boolean?
+  layer_view    layer_view? @relation(fields: [id_layer_view], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users         users?      @relation(fields: [id_user_type], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([id_user_type, id_layer_view])
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model roof {
+  id           BigInt                   @id(map: "roof_pk") @default(autoincrement())
+  geom         Unsupported("geometry")?
+  roof_type    roof_type?
+  id_who       Int?
+  id_community Int
+  id_roof_type Int
+  community    community                @relation(fields: [id_community], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  roof_typ     roof_typ                 @relation(fields: [id_roof_type], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model roof_typ {
+  id     Int     @id @default(autoincrement())
+  name   String?
+  id_who Int?
+  roof   roof[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model spatial_ref_sys {
+  srid      Int     @id
+  auth_name String? @db.VarChar(256)
+  auth_srid Int?
+  srtext    String? @db.VarChar(2048)
+  proj4text String? @db.VarChar(2048)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model status_regular_area_project {
+  id                       Int                        @id(map: "status_pkey") @default(autoincrement())
+  name                     String?
+  id_who                   Int?
+  regulatory_area_projects regulatory_area_projects[]
+}
+
+model tech1_submission {
+  id                       BigInt                   @id @default(autoincrement())
+  id_project               Int
+  id_plan_boundary         Int
+  geom_buffer              Unsupported("geometry")?
+  geom_point               Unsupported("geometry")?
+  id_who                   Int?
+  created_at               DateTime?                @default(now()) @db.Timestamp(6)
+  id_regulatory_block      BigInt?
+  plan_boundary            plan_boundary            @relation(fields: [id_plan_boundary], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  regulatory_area_projects regulatory_area_projects @relation(fields: [id_project], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  regulatory_blocks        regulatory_blocks?       @relation(fields: [id_regulatory_block], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model tech2_submission {
+  id                       BigInt                   @id @default(autoincrement())
+  id_project               Int
+  id_plan_boundary         Int
+  geom_outline             Unsupported("geometry")?
+  id_who                   Int?
+  created_at               DateTime?                @default(now()) @db.Timestamp(6)
+  id_regulatory_block      BigInt?
+  plan_boundary            plan_boundary            @relation(fields: [id_plan_boundary], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  regulatory_area_projects regulatory_area_projects @relation(fields: [id_project], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  regulatory_blocks        regulatory_blocks?       @relation(fields: [id_regulatory_block], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model township {
+  id             Int                      @id(map: "township_pk") @default(autoincrement())
+  township_code  String?
+  township_name  String
+  geom           Unsupported("geometry")?
+  id_who         Int?
+  id_governorate Int?                     @db.SmallInt
+  code           String?
+  community      community[]
+  governorate    governorate?             @relation(fields: [id_governorate], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user_privilege user_privilege[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model type_regulatory_area {
+  id                     Int                      @id(map: "regulatory_area_pkey") @default(autoincrement())
+  name                   String?
+  image                  Bytes?
+  code                   String?
+  id_who                 Int?
+  control_administration control_administration[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model unit {
+  id                                                                Int              @id(map: "one_pkey") @default(autoincrement())
+  name                                                              String?
+  id_who                                                            Int?
+  community_unit_community_unit_id_unit_back_dutiesTounit           community_unit[] @relation("community_unit_id_unit_back_dutiesTounit")
+  community_unit_community_unit_id_unit_front_dutiesTounit          community_unit[] @relation("community_unit_id_unit_front_dutiesTounit")
+  community_unit_community_unit_id_unit_heightTounit                community_unit[] @relation("community_unit_id_unit_heightTounit")
+  community_unit_community_unit_id_unit_maximum_property_areaTounit community_unit[] @relation("community_unit_id_unit_maximum_property_areaTounit")
+  community_unit_community_unit_id_unit_minimum_interfaceTounit     community_unit[] @relation("community_unit_id_unit_minimum_interfaceTounit")
+  community_unit_community_unit_id_unit_minimum_property_areaTounit community_unit[] @relation("community_unit_id_unit_minimum_property_areaTounit")
+  community_unit_community_unit_id_unit_side_dutiesTounit           community_unit[] @relation("community_unit_id_unit_side_dutiesTounit")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model user_interfaces {
+  id           Int         @id @default(autoincrement())
+  id_user_type Int?
+  id_interface Int?
+  interfaces   interfaces? @relation(fields: [id_interface], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user_type    user_type?  @relation(fields: [id_user_type], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([id_user_type, id_interface])
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model user_layers {
+  id       Int    @id @default(autoincrement())
+  id_user  Int?
+  id_layer Int?
+  layer    layer? @relation(fields: [id_layer], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users    users? @relation(fields: [id_user], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model user_privilege {
+  id               Int            @id @default(autoincrement())
   id_user          Int?
-  id_governorate   Int?
+  id_governorate   Int?           @db.SmallInt
   id_township      Int?
-  id_community     Int?
+  id_community     Int?           @db.SmallInt
   id_who           Int?
   privilege_code   String?
   id_plan_boundary Int?
-
-  @@map("user_privilege")
+  community        community?     @relation(fields: [id_community], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  governorate      governorate?   @relation(fields: [id_governorate], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  plan_boundary    plan_boundary? @relation(fields: [id_plan_boundary], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  township         township?      @relation(fields: [id_township], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users            users?         @relation(fields: [id_user], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model user_type {
+  id              Int               @id @default(autoincrement())
+  name            String?
+  id_who          Int?
+  user_interfaces user_interfaces[]
+  users           users[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model users {
+  id                                                                           Int                         @id @default(autoincrement())
+  name                                                                         String?
+  username                                                                     String?
+  password                                                                     String?
+  token                                                                        String?                     @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  date                                                                         DateTime?                   @db.Date
+  isactive                                                                     Boolean?
+  id_user_type                                                                 Int?
+  id_who                                                                       Int?
+  id_group                                                                     Int?
+  refresh_token                                                                String?
+  control_administration                                                       control_administration[]
+  regulatory_area_projects_regulatory_area_projects_id_drawer_1Tousers         regulatory_area_projects[]  @relation("regulatory_area_projects_id_drawer_1Tousers")
+  regulatory_area_projects_regulatory_area_projects_id_drawer_2Tousers         regulatory_area_projects[]  @relation("regulatory_area_projects_id_drawer_2Tousers")
+  regulatory_area_projects_regulatory_area_projects_id_projecte_managerTousers regulatory_area_projects[]  @relation("regulatory_area_projects_id_projecte_managerTousers")
+  role_user_type_layer_view                                                    role_user_type_layer_view[]
+  user_layers                                                                  user_layers[]
+  user_privilege                                                               user_privilege[]
+  group                                                                        group?                      @relation(fields: [id_group], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user_type                                                                    user_type?                  @relation(fields: [id_user_type], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model version {
+  id              Int     @id @default(autoincrement())
+  version_desktop String?
+  version_android String?
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model wall {
+  id           Int                      @id(map: "wall_pk") @default(autoincrement())
+  geom         Unsupported("geometry")?
+  wall_type    wall_type
+  id_who       Int?
+  id_community Int
+  road_width   Int?
+  community    community                @relation(fields: [id_community], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+enum roof_type {
+  درج            @map("درج")
+  برندا           @map("برندا")
+  سقف_مؤقت       @map("سقف مؤقت")
+  سقف_دائم       @map("سقف دائم")
+  قيد_البناء      @map("قيد البناء")
+  سقف_مبنى_حكومي @map("سقف مبنى حكومي")
+}
+
+enum wall_type {
+  سور   @map("سور")
+  رصيف  @map("رصيف")
+  طريق  @map("طريق")
+}
+
+
+

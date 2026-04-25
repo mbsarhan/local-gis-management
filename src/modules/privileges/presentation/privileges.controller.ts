@@ -10,6 +10,7 @@ import {
     HttpCode,
     HttpStatus,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { AuthGuard }                  from '../../../shared/guards/auth.guard';
 import { AdminOrManagerGuard }        from '../../../shared/guards/roles.guard';
 import { GetAllPrivilegesUseCase }    from '../application/use-cases/get-all-privileges.use-case';
@@ -20,6 +21,9 @@ import { GrantPrivilegeDto }          from './dto/privileges.dto';
 
 @Controller('privileges')
 @UseGuards(AuthGuard)
+@ApiTags('Privileges')
+@ApiBearerAuth('access-token')
+@ApiUnauthorizedResponse({ description: 'Unauthorized' })
 export class PrivilegesController {
     constructor(
         private readonly getAllPrivilegesUseCase:  GetAllPrivilegesUseCase,

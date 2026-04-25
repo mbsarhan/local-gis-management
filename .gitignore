@@ -10,8 +10,6 @@ dist/
 build/
 bin/
 obj/
-*.js
-!.*.js
 
 # 👤 User-specific files
 *.user
@@ -73,5 +71,7 @@ Thumbs.db
 *.swo
 *~
 
+node_modules/
+docs/
 # 📊 Optional documentation (keep generated docs out if needed)
 # docs/api/

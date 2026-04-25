@@ -38,6 +38,8 @@ export class UsersPrismaRepository implements IUsersRepository {
         };
     }
 
+
+
     // ── Read ──────────────────────────────────────────────────────────────
 
     async findAll(token: string) {

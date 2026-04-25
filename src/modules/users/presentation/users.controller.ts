@@ -10,6 +10,7 @@ import {
     HttpCode,
     HttpStatus,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { AuthGuard }             from '../../../shared/guards/auth.guard';
 import { RefreshTokenGuard }     from '../../../shared/guards/refresh-token.guard';
 import { LoginUseCase }          from '../application/use-cases/login.use-case';
@@ -24,6 +25,7 @@ import { ChangeUserTypeUseCase } from '../application/use-cases/change-user-type
 import { LoginDto, AddUserDto, ChangePasswordDto, ChangeUserTypeDto } from './dto/users.dto';
 
 @Controller('users')
+@ApiTags('Users')
 export class UsersController {
     constructor(
         private readonly loginUseCase:          LoginUseCase,
@@ -48,6 +50,8 @@ export class UsersController {
     @Post('refresh')
     @UseGuards(RefreshTokenGuard)
     @HttpCode(HttpStatus.OK)
+    @ApiBearerAuth('access-token')
+    @ApiUnauthorizedResponse({ description: 'Unauthorized' })
     async refresh(@Req() req: any) {
         return this.refreshTokenUseCase.execute(req.userId, req.refreshToken);
     }
@@ -56,6 +60,8 @@ export class UsersController {
     @Post('logout')
     @UseGuards(AuthGuard)
     @HttpCode(HttpStatus.OK)
+    @ApiBearerAuth('access-token')
+    @ApiUnauthorizedResponse({ description: 'Unauthorized' })
     async logout(@Req() req: any) {
         return this.logoutUseCase.execute(req.userId);
     }
@@ -63,6 +69,8 @@ export class UsersController {
     // GET /api/users — protected
     @Get()
     @UseGuards(AuthGuard)
+    @ApiBearerAuth('access-token')
+    @ApiUnauthorizedResponse({ description: 'Unauthorized' })
     async getAllUsers(@Req() req: any) {
         // get_all_users still needs the DB token for its internal logic
         // so we fetch it from DB using userId
@@ -73,6 +81,8 @@ export class UsersController {
     @Post()
     @UseGuards(AuthGuard)
     @HttpCode(HttpStatus.CREATED)
+    @ApiBearerAuth('access-token')
+    @ApiUnauthorizedResponse({ description: 'Unauthorized' })
     async addUser(@Req() req: any, @Body() dto: AddUserDto) {
         const id = await this.addUserUseCase.execute(
             req.userId,
@@ -88,6 +98,8 @@ export class UsersController {
     // PATCH /api/users/:id/deactivate — protected
     @Patch(':id/deactivate')
     @UseGuards(AuthGuard)
+    @ApiBearerAuth('access-token')
+    @ApiUnauthorizedResponse({ description: 'Unauthorized' })
     async deactivateUser(@Req() req: any, @Param('id') id: number) {
         return this.deactivateUserUseCase.execute(req.userId, id);
     }
@@ -95,6 +107,8 @@ export class UsersController {
     // PATCH /api/users/:id/reactivate — protected
     @Patch(':id/reactivate')
     @UseGuards(AuthGuard)
+    @ApiBearerAuth('access-token')
+    @ApiUnauthorizedResponse({ description: 'Unauthorized' })
     async reactivateUser(@Req() req: any, @Param('id') id: number) {
         return this.reactivateUserUseCase.execute(req.userId, id);
     }
@@ -102,6 +116,8 @@ export class UsersController {
     // PATCH /api/users/:id/change-password — protected
     @Patch(':id/change-password')
     @UseGuards(AuthGuard)
+    @ApiBearerAuth('access-token')
+    @ApiUnauthorizedResponse({ description: 'Unauthorized' })
     async changePassword(@Req() req: any, @Param('id') id: number, @Body() dto: ChangePasswordDto) {
         return this.changePasswordUseCase.execute(req.userId, id, dto.new_password);
     }
@@ -109,6 +125,8 @@ export class UsersController {
     // PATCH /api/users/:id/change-type — protected
     @Patch(':id/change-type')
     @UseGuards(AuthGuard)
+    @ApiBearerAuth('access-token')
+    @ApiUnauthorizedResponse({ description: 'Unauthorized' })
     async changeUserType(@Req() req: any, @Param('id') id: number, @Body() dto: ChangeUserTypeDto) {
         return this.changeUserTypeUseCase.execute(req.userId, id, dto.id_user_type);
     }
