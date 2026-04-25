@@ -10,6 +10,7 @@ import {
     HttpCode,
     HttpStatus,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { AuthGuard }                  from '../../../shared/guards/auth.guard';
 import { CreateProjectUseCase }       from '../application/use-cases/create-project.use-case';
 import { GetProjectsUseCase }         from '../application/use-cases/get-projects.use-case';
@@ -26,6 +27,9 @@ import { CreateProjectDto, AssignTechnician1Dto, AssignTechnician2Dto } from './
 
 @Controller('projects')
 @UseGuards(AuthGuard)
+@ApiTags('Projects')
+@ApiBearerAuth('access-token')
+@ApiUnauthorizedResponse({ description: 'Unauthorized' })
 export class ProjectsController {
     constructor(
         private readonly createProjectUseCase:       CreateProjectUseCase,
