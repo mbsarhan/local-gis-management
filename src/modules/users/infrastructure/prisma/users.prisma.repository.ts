@@ -22,9 +22,9 @@ export class UsersPrismaRepository implements IUsersRepository {
     // ── Auth ──────────────────────────────────────────────────────────────
 
     async login(username: string, password: string) {
-        const user = await this.prisma.user.findFirst({
+        const user = await this.prisma.users.findFirst({
             where:   { username, password: this.hashPassword(password), isactive: true },
-            include: { userType: true },
+            include: { user_type: true },
         });
 
         if (!user) return null;
@@ -34,7 +34,7 @@ export class UsersPrismaRepository implements IUsersRepository {
             u_name:         user.name,
             u_token:        user.token,
             u_id_user_type: user.id_user_type,
-            name_user_type: user.userType?.name,
+            name_user_type: user.user_type?.name,
         };
     }
 
@@ -57,7 +57,7 @@ export class UsersPrismaRepository implements IUsersRepository {
         idUserType: number,
         idGroup?: number,
     ): Promise<number> {
-        const userTypeExists = await this.prisma.userType.findUnique({
+        const userTypeExists = await this.prisma.user_type.findUnique({
             where: { id: idUserType },
         });
         if (!userTypeExists) {
@@ -65,7 +65,7 @@ export class UsersPrismaRepository implements IUsersRepository {
         }
 
         // 1. Insert user row via Prisma
-        const user = await this.prisma.user.create({
+        const user = await this.prisma.users.create({
             data: {
                 name,
                 username,
@@ -95,7 +95,7 @@ export class UsersPrismaRepository implements IUsersRepository {
             throw new BadRequestException('You cannot deactivate your own account');
         }
 
-        const user = await this.prisma.user.findFirst({
+        const user = await this.prisma.users.findFirst({
             where: { id: idUser, isactive: true },
         });
         if (!user) {
@@ -103,7 +103,7 @@ export class UsersPrismaRepository implements IUsersRepository {
         }
 
         // 1. Update isactive via Prisma
-        await this.prisma.user.update({
+        await this.prisma.users.update({
             where: { id: idUser },
             data:  { isactive: false },
         });
@@ -124,7 +124,7 @@ export class UsersPrismaRepository implements IUsersRepository {
             throw new BadRequestException('You cannot reactivate your own account');
         }
 
-        const user = await this.prisma.user.findFirst({
+        const user = await this.prisma.users.findFirst({
             where: { id: idUser, isactive: false },
         });
         if (!user) {
@@ -132,7 +132,7 @@ export class UsersPrismaRepository implements IUsersRepository {
         }
 
         // 1. Update isactive via Prisma
-        await this.prisma.user.update({
+        await this.prisma.users.update({
             where: { id: idUser },
             data:  { isactive: true },
         });
@@ -153,7 +153,7 @@ export class UsersPrismaRepository implements IUsersRepository {
             throw new BadRequestException('You cannot change your own password through this function');
         }
 
-        const user = await this.prisma.user.findFirst({
+        const user = await this.prisma.users.findFirst({
             where: { id: idUser, isactive: true },
         });
         if (!user) {
@@ -161,7 +161,7 @@ export class UsersPrismaRepository implements IUsersRepository {
         }
 
         // 1. Update password via Prisma
-        await this.prisma.user.update({
+        await this.prisma.users.update({
             where: { id: idUser },
             data:  { password: this.hashPassword(newPassword) },
         });
@@ -183,14 +183,14 @@ export class UsersPrismaRepository implements IUsersRepository {
             throw new BadRequestException('You cannot change your own user type');
         }
 
-        const user = await this.prisma.user.findFirst({
+        const user = await this.prisma.users.findFirst({
             where: { id: idUser, isactive: true },
         });
         if (!user) {
             throw new NotFoundException('User not found or inactive');
         }
 
-        const userTypeExists = await this.prisma.userType.findUnique({
+        const userTypeExists = await this.prisma.user_type.findUnique({
             where: { id: idUserType },
         });
         if (!userTypeExists) {
@@ -198,7 +198,7 @@ export class UsersPrismaRepository implements IUsersRepository {
         }
 
         // Pure Prisma — no DDL needed
-        await this.prisma.user.update({
+        await this.prisma.users.update({
             where: { id: idUser },
             data:  { id_user_type: idUserType },
         });
@@ -209,14 +209,14 @@ export class UsersPrismaRepository implements IUsersRepository {
     // ── Refresh Token ─────────────────────────────────────────────────────
 
     async saveRefreshToken(userId: number, refreshToken: string): Promise<void> {
-        await this.prisma.user.update({
+        await this.prisma.users.update({
             where: { id: userId },
             data:  { refresh_token: refreshToken },
         });
     }
 
     async getRefreshToken(userId: number): Promise<string | null> {
-        const user = await this.prisma.user.findUnique({
+        const user = await this.prisma.users.findUnique({
             where:  { id: userId },
             select: { refresh_token: true },
         });
@@ -224,7 +224,7 @@ export class UsersPrismaRepository implements IUsersRepository {
     }
 
     async clearRefreshToken(userId: number): Promise<void> {
-        await this.prisma.user.update({
+        await this.prisma.users.update({
             where: { id: userId },
             data:  { refresh_token: null },
         });

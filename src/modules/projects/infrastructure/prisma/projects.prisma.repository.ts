@@ -36,7 +36,7 @@ export class ProjectsPrismaRepository implements IProjectsRepository {
     }
 
     async findById(id: number): Promise<Project | null> {
-        const project = await this.prisma.regulatoryAreaProject.findUnique({
+        const project = await this.prisma.regulatory_area_projects.findUnique({
             where: { id },
         });
         if (!project) return null;
@@ -51,7 +51,7 @@ export class ProjectsPrismaRepository implements IProjectsRepository {
         idPlanBoundary: number,
         idLayer: number,
     ): Promise<number> {
-        const project = await this.prisma.regulatoryAreaProject.create({
+        const project = await this.prisma.regulatory_area_projects.create({
             data: {
                 id_projecte_manager: idProjectManager,
                 date_assignment_projecte_manager: new Date(),
@@ -68,7 +68,7 @@ export class ProjectsPrismaRepository implements IProjectsRepository {
     // ── Status Transitions ────────────────────────────────────────────────
 
     async startProject(id: number, startDate: Date): Promise<void> {
-        await this.prisma.regulatoryAreaProject.update({
+        await this.prisma.regulatory_area_projects.update({
             where: { id },
             data: {
                 projecte_start_date: startDate,
@@ -78,7 +78,7 @@ export class ProjectsPrismaRepository implements IProjectsRepository {
     }
 
     async assignTechnician1(id: number, idDrawer1: number, assignmentDate: Date): Promise<void> {
-        await this.prisma.regulatoryAreaProject.update({
+        await this.prisma.regulatory_area_projects.update({
             where: { id },
             data: {
                 id_drawer_1: idDrawer1,
@@ -89,7 +89,7 @@ export class ProjectsPrismaRepository implements IProjectsRepository {
     }
 
     async technician1Start(id: number, startDate: Date): Promise<void> {
-        await this.prisma.regulatoryAreaProject.update({
+        await this.prisma.regulatory_area_projects.update({
             where: { id },
             data: {
                 drawer_1_start_date: startDate,
@@ -99,7 +99,7 @@ export class ProjectsPrismaRepository implements IProjectsRepository {
     }
 
     async technician1Confirm(id: number, endDate: Date): Promise<void> {
-        await this.prisma.regulatoryAreaProject.update({
+        await this.prisma.regulatory_area_projects.update({
             where: { id },
             data: {
                 drawer_1_end_date: endDate,
@@ -109,7 +109,7 @@ export class ProjectsPrismaRepository implements IProjectsRepository {
     }
 
     async assignTechnician2(id: number, idDrawer2: number, assignmentDate: Date): Promise<void> {
-        await this.prisma.regulatoryAreaProject.update({
+        await this.prisma.regulatory_area_projects.update({
             where: { id },
             data: {
                 id_drawer_2: idDrawer2,
@@ -120,7 +120,7 @@ export class ProjectsPrismaRepository implements IProjectsRepository {
     }
 
     async technician2Start(id: number, startDate: Date): Promise<void> {
-        await this.prisma.regulatoryAreaProject.update({
+        await this.prisma.regulatory_area_projects.update({
             where: { id },
             data: {
                 drawer_2_start_date: startDate,
@@ -130,7 +130,7 @@ export class ProjectsPrismaRepository implements IProjectsRepository {
     }
 
     async technician2Confirm(id: number, endDate: Date): Promise<void> {
-        await this.prisma.regulatoryAreaProject.update({
+        await this.prisma.regulatory_area_projects.update({
             where: { id },
             data: {
                 drawer_2_end_date: endDate,
@@ -140,7 +140,7 @@ export class ProjectsPrismaRepository implements IProjectsRepository {
     }
 
     async returnToTechnician1(id: number): Promise<void> {
-        await this.prisma.regulatoryAreaProject.update({
+        await this.prisma.regulatory_area_projects.update({
             where: { id },
             data: {
                 // Reset technician 1 and 2 fields for the new cycle
@@ -158,7 +158,7 @@ export class ProjectsPrismaRepository implements IProjectsRepository {
     }
 
     async managerConfirm(id: number, endDate: Date): Promise<void> {
-        await this.prisma.regulatoryAreaProject.update({
+        await this.prisma.regulatory_area_projects.update({
             where: { id },
             data: {
                 projecte_end_date: endDate,
@@ -170,7 +170,7 @@ export class ProjectsPrismaRepository implements IProjectsRepository {
     // ── Privilege Management ──────────────────────────────────────────────
 
     async hasPrivilege(userId: number, planBoundaryId: number): Promise<boolean> {
-        const privilege = await this.prisma.userPrivilege.findFirst({
+        const privilege = await this.prisma.user_privilege.findFirst({
             where: {
                 id_user: userId,
                 id_plan_boundary: planBoundaryId,
@@ -188,7 +188,7 @@ export class ProjectsPrismaRepository implements IProjectsRepository {
         idCommunity: number,
         privilegeCode: string,
     ): Promise<void> {
-        await this.prisma.userPrivilege.create({
+        await this.prisma.user_privilege.create({
             data: {
                 id_user: userId,
                 id_plan_boundary: planBoundaryId,
@@ -202,7 +202,7 @@ export class ProjectsPrismaRepository implements IProjectsRepository {
     }
 
     async revokePrivilege(userId: number, planBoundaryId: number): Promise<void> {
-        await this.prisma.userPrivilege.deleteMany({
+        await this.prisma.user_privilege.deleteMany({
             where: {
                 id_user: userId,
                 id_plan_boundary: planBoundaryId,

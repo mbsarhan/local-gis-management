@@ -42,7 +42,7 @@ export class PrivilegesPrismaRepository implements IPrivilegesRepository {
     }
 
     async findById(id: number): Promise<Privilege | null> {
-        const row = await this.prisma.userPrivilege.findUnique({
+        const row = await this.prisma.user_privilege.findUnique({
             where: { id },
         });
         if (!row) return null;
@@ -64,7 +64,7 @@ export class PrivilegesPrismaRepository implements IPrivilegesRepository {
         idCommunity?: number,
         idPlanBoundary?: number,
     ): Promise<number> {
-        const row = await this.prisma.userPrivilege.create({
+        const row = await this.prisma.user_privilege.create({
             data: {
                 id_user:          idUser,
                 id_governorate:   idGovernorate,
@@ -81,7 +81,7 @@ export class PrivilegesPrismaRepository implements IPrivilegesRepository {
     // ── Delete ────────────────────────────────────────────────────────────
 
     async delete(id: number): Promise<void> {
-        await this.prisma.userPrivilege.delete({
+        await this.prisma.user_privilege.delete({
             where: { id },
         });
     }

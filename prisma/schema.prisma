@@ -399,7 +399,7 @@ model tech1_submission {
   geom_point               Unsupported("geometry")?
   id_who                   Int?
   created_at               DateTime?                @default(now()) @db.Timestamp(6)
-  id_regulatory_block      BigInt?
+  id_regulatory_block      Int?
   plan_boundary            plan_boundary            @relation(fields: [id_plan_boundary], references: [id], onDelete: NoAction, onUpdate: NoAction)
   regulatory_area_projects regulatory_area_projects @relation(fields: [id_project], references: [id], onDelete: NoAction, onUpdate: NoAction)
   regulatory_blocks        regulatory_blocks?       @relation(fields: [id_regulatory_block], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -412,7 +412,7 @@ model tech2_submission {
   geom_outline             Unsupported("geometry")?
   id_who                   Int?
   created_at               DateTime?                @default(now()) @db.Timestamp(6)
-  id_regulatory_block      BigInt?
+  id_regulatory_block      Int?
   plan_boundary            plan_boundary            @relation(fields: [id_plan_boundary], references: [id], onDelete: NoAction, onUpdate: NoAction)
   regulatory_area_projects regulatory_area_projects @relation(fields: [id_project], references: [id], onDelete: NoAction, onUpdate: NoAction)
   regulatory_blocks        regulatory_blocks?       @relation(fields: [id_regulatory_block], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -544,18 +544,18 @@ model wall {
 }
 
 enum roof_type {
-  درج            @map("درج")
-  برندا           @map("برندا")
-  سقف_مؤقت       @map("سقف مؤقت")
-  سقف_دائم       @map("سقف دائم")
-  قيد_البناء      @map("قيد البناء")
-  سقف_مبنى_حكومي @map("سقف مبنى حكومي")
+  DARAJ           
+  BRAND           
+  SAQF_MUAQAT    
+  SAQF_DAIM      
+  QAD_BINAA      
+  SAQF_HUKUMI    
 }
 
 enum wall_type {
-  سور   @map("سور")
-  رصيف  @map("رصيف")
-  طريق  @map("طريق")
+  SOR    
+  RASIF  
+  TARIQ  
 }
 
 
