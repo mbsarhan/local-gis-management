@@ -11,7 +11,7 @@ export class UsersPrismaRepository implements IUsersRepository {
     constructor(
         private readonly prisma: PrismaService,
         private readonly pgPool: PgPoolService,
-    ) {}
+    ) { }
 
     // ── Helpers ───────────────────────────────────────────────────────────
 
@@ -23,16 +23,16 @@ export class UsersPrismaRepository implements IUsersRepository {
 
     async login(username: string, password: string) {
         const user = await this.prisma.users.findFirst({
-            where:   { username, password: this.hashPassword(password), isactive: true },
+            where: { username, password: this.hashPassword(password), isactive: true },
             include: { user_type: true },
         });
 
         if (!user) return null;
 
         return {
-            u_id:           user.id,
-            u_name:         user.name,
-            u_token:        user.token,
+            u_id: user.id,
+            u_name: user.name,
+            u_token: user.token,
             u_id_user_type: user.id_user_type,
             name_user_type: user.user_type?.name,
         };
@@ -64,26 +64,54 @@ export class UsersPrismaRepository implements IUsersRepository {
             throw new BadRequestException('User type not found');
         }
 
+        const hashedPassword = crypto
+            .createHash('md5')
+            .update(password)
+            .digest('hex');
+
         // 1. Insert user row via Prisma
         const user = await this.prisma.users.create({
             data: {
                 name,
                 username,
-                password: this.hashPassword(password),
-                isactive:     true,
+                password: hashedPassword,
+                isactive: true,
                 id_user_type: idUserType,
-                id_group:     idGroup ?? null,
-                id_who:       idWho,
-                date:         new Date(),
+                id_group: idGroup ?? null,
+                id_who: idWho,
+                date: new Date(),
             },
         });
 
-        // 2. Create DB role — must stay raw SQL
-        const { sql, params } = UsersQueries.createRole(
+        // 2. Create the actual PostgreSQL DB role
+        const { sql: createSql, params: createParams } = UsersQueries.createRole(
             this.pgPool.quoteIdentifier(username),
             this.pgPool.quoteLiteral(password),
         );
-        await this.pgPool.query(sql, params);
+        await this.pgPool.query(createSql, createParams);
+
+        // 3. Apply all existing layer permissions for this user type
+        const permissions = await this.prisma.role_user_type_layer_view.findMany({
+            where: { id_user_type: idUserType },
+            include: { layer: true },
+        });
+
+        for (const perm of permissions) {
+            if (!perm.layer?.name) continue;
+
+            const privileges: string[] = [];
+            if (perm.select_b) privileges.push('SELECT');
+            if (perm.insert_b) privileges.push('INSERT');
+            if (perm.update_b) privileges.push('UPDATE');
+            if (perm.delete_b) privileges.push('DELETE');
+
+            if (privileges.length === 0) continue;
+
+            await this.pgPool.query(
+                `GRANT ${privileges.join(', ')} ON TABLE ${this.pgPool.quoteIdentifier(perm.layer.name)} TO ${this.pgPool.quoteIdentifier(username)}`,
+                []
+            );
+        }
 
         return user.id;
     }
@@ -105,7 +133,7 @@ export class UsersPrismaRepository implements IUsersRepository {
         // 1. Update isactive via Prisma
         await this.prisma.users.update({
             where: { id: idUser },
-            data:  { isactive: false },
+            data: { isactive: false },
         });
 
         // 2. Revoke DB login — must stay raw SQL
@@ -134,7 +162,7 @@ export class UsersPrismaRepository implements IUsersRepository {
         // 1. Update isactive via Prisma
         await this.prisma.users.update({
             where: { id: idUser },
-            data:  { isactive: true },
+            data: { isactive: true },
         });
 
         // 2. Restore DB login — must stay raw SQL
@@ -163,7 +191,7 @@ export class UsersPrismaRepository implements IUsersRepository {
         // 1. Update password via Prisma
         await this.prisma.users.update({
             where: { id: idUser },
-            data:  { password: this.hashPassword(newPassword) },
+            data: { password: this.hashPassword(newPassword) },
         });
 
         // 2. Update DB role password — must stay raw SQL
@@ -200,7 +228,7 @@ export class UsersPrismaRepository implements IUsersRepository {
         // Pure Prisma — no DDL needed
         await this.prisma.users.update({
             where: { id: idUser },
-            data:  { id_user_type: idUserType },
+            data: { id_user_type: idUserType },
         });
 
         return idUser;
@@ -211,13 +239,13 @@ export class UsersPrismaRepository implements IUsersRepository {
     async saveRefreshToken(userId: number, refreshToken: string): Promise<void> {
         await this.prisma.users.update({
             where: { id: userId },
-            data:  { refresh_token: refreshToken },
+            data: { refresh_token: refreshToken },
         });
     }
 
     async getRefreshToken(userId: number): Promise<string | null> {
         const user = await this.prisma.users.findUnique({
-            where:  { id: userId },
+            where: { id: userId },
             select: { refresh_token: true },
         });
         return user?.refresh_token ?? null;
@@ -226,7 +254,7 @@ export class UsersPrismaRepository implements IUsersRepository {
     async clearRefreshToken(userId: number): Promise<void> {
         await this.prisma.users.update({
             where: { id: userId },
-            data:  { refresh_token: null },
+            data: { refresh_token: null },
         });
     }
 }

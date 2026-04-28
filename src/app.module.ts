@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { DatabaseModule }    from './shared/database/database.module';
-import { UsersModule }       from './modules/users/users.module';
-import { ProjectsModule }    from './modules/projects/projects.module';
-import { PrivilegesModule }  from './modules/privileges/privileges.module';
-import { ControlAdministrationModule } from './modules/control-administration/control-administration.module';
+import { DatabaseModule }          from './shared/database/database.module';
+import { UsersModule }             from './modules/users/users.module';
+import { ProjectsModule }          from './modules/projects/projects.module';
+import { PrivilegesModule }        from './modules/privileges/privileges.module';
+import { LayerPermissionsModule }  from './modules/layer-permissions/layer-permissions.module';
 
 @Module({
     imports: [
@@ -11,9 +11,7 @@ import { ControlAdministrationModule } from './modules/control-administration/co
         UsersModule,
         ProjectsModule,
         PrivilegesModule,
-        ControlAdministrationModule
+        LayerPermissionsModule,
     ],
 })
 export class AppModule {}
-
-

@@ -494,6 +494,16 @@ model version {
   version_android String?
 }
 
+model wall {
+  id           Int                      @id(map: "wall_pk") @default(autoincrement())
+  geom         Unsupported("geometry")?
+  wall_type    wall_type
+  id_who       Int?
+  id_community Int
+  road_width   Int?
+  community    community                @relation(fields: [id_community], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
 enum roof_type {
   DARAJ
   BRAND
