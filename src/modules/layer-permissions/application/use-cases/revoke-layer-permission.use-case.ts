@@ -6,23 +6,20 @@ export class RevokeLayerPermissionUseCase {
     constructor(
         @Inject(LAYER_PERMISSIONS_REPOSITORY)
         private readonly repo: ILayerPermissionsRepository,
-    ) { }
+    ) {}
 
     async execute(id: number) {
         const existing = await this.repo.findById(id);
-        if (!existing) {
-            throw new NotFoundException('Layer permission not found');
-        }
+        if (!existing) throw new NotFoundException('Layer permission not found');
 
         const layerName = await this.repo.getLayerName(existing.idLayer);
-        if (!layerName) {
-            throw new NotFoundException('Layer not found');
-        }
+        if (!layerName) throw new NotFoundException('Layer not found');
+
+        const username = await this.repo.getUsernameById(existing.idUserType);
+        if (!username) throw new NotFoundException('User not found or inactive');
 
         await this.repo.delete(id);
-
-        const usernames = await this.repo.getUsernamesByType(existing.idUserType);
-        await this.repo.revokeAll(layerName, usernames);
+        await this.repo.revokeAll(layerName, username);
 
         return { id };
     }

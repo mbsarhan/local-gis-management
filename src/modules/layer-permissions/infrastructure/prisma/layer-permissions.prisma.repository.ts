@@ -11,14 +11,12 @@ export class LayerPermissionsPrismaRepository implements ILayerPermissionsReposi
     constructor(
         private readonly prisma: PrismaService,
         private readonly pgPool: PgPoolService,
-    ) { }
-
-    // ── Helpers ───────────────────────────────────────────────────────────
+    ) {}
 
     private mapToEntity(row: any): LayerPermission {
         return new LayerPermission(
             row.id,
-            row.id_user_type,
+            row.id_user,
             row.id_layer,
             row.select_b ?? false,
             row.insert_b ?? false,
@@ -27,15 +25,13 @@ export class LayerPermissionsPrismaRepository implements ILayerPermissionsReposi
         );
     }
 
-    // ── Read ──────────────────────────────────────────────────────────────
-
     async findAll(): Promise<any[]> {
         const { sql, params } = LayerPermissionsQueries.findAll();
         return this.pgPool.query(sql, params);
     }
 
-    async findByUserType(idUserType: number): Promise<any[]> {
-        const { sql, params } = LayerPermissionsQueries.findByUserType(idUserType);
+    async findByUser(idUser: number): Promise<any[]> {
+        const { sql, params } = LayerPermissionsQueries.findByUser(idUser);
         return this.pgPool.query(sql, params);
     }
 
@@ -47,38 +43,29 @@ export class LayerPermissionsPrismaRepository implements ILayerPermissionsReposi
         return this.mapToEntity(row);
     }
 
-    async existsForUserTypeAndLayer(idUserType: number, idLayer: number): Promise<boolean> {
+    async existsForUserAndLayer(idUser: number, idLayer: number): Promise<boolean> {
         const row = await this.prisma.role_user_type_layer_view.findFirst({
-            where: { id_user_type: idUserType, id_layer: idLayer },
+            where: { id_user: idUser, id_layer: idLayer },
         });
         return !!row;
     }
 
     async getLayerName(idLayer: number): Promise<string | null> {
         const layer = await this.prisma.layer.findUnique({
-            where: { id: idLayer },
+            where:  { id: idLayer },
             select: { name: true },
         });
         return layer?.name ?? null;
     }
 
-    async getUsernamesByType(idUserType: number): Promise<string[]> {
-        const { sql, params } = LayerPermissionsQueries.getUsernamesByType(idUserType);
+    async getUsernameById(idUser: number): Promise<string | null> {
+        const { sql, params } = LayerPermissionsQueries.getUsernameById(idUser);
         const rows = await this.pgPool.query(sql, params);
-        return rows.map(r => r.username);
+        return rows[0]?.username ?? null;
     }
-
-    async getPermissionsByUserType(idUserType: number): Promise<LayerPermission[]> {
-        const rows = await this.prisma.role_user_type_layer_view.findMany({
-            where: { id_user_type: idUserType },
-        });
-        return rows.map(r => this.mapToEntity(r));
-    }
-
-    // ── Create ────────────────────────────────────────────────────────────
 
     async create(
-        idUserType: number,
+        idUser: number,
         idLayer: number,
         selectB: boolean,
         insertB: boolean,
@@ -87,7 +74,7 @@ export class LayerPermissionsPrismaRepository implements ILayerPermissionsReposi
     ): Promise<number> {
         const row = await this.prisma.role_user_type_layer_view.create({
             data: {
-                id_user_type: idUserType,
+                id_user:  idUser,
                 id_layer: idLayer,
                 select_b: selectB,
                 insert_b: insertB,
@@ -97,8 +84,6 @@ export class LayerPermissionsPrismaRepository implements ILayerPermissionsReposi
         });
         return row.id;
     }
-
-    // ── Update ────────────────────────────────────────────────────────────
 
     async update(
         id: number,
@@ -118,34 +103,26 @@ export class LayerPermissionsPrismaRepository implements ILayerPermissionsReposi
         });
     }
 
-    // ── Delete ────────────────────────────────────────────────────────────
-
     async delete(id: number): Promise<void> {
         await this.prisma.role_user_type_layer_view.delete({
             where: { id },
         });
     }
-    
 
-    async applyGrants(layerName: string, usernames: string[], privileges: string[]): Promise<void> {
-        const privilegeStr = privileges.join(', ');
-        for (const username of usernames) {
-            const { sql, params } = LayerPermissionsQueries.grantOnTable(
-                this.pgPool.quoteIdentifier(layerName),
-                privilegeStr,
-                this.pgPool.quoteIdentifier(username),
-            );
-            await this.pgPool.query(sql, params);
-        }
+    async applyGrants(layerName: string, username: string, privileges: string[]): Promise<void> {
+        const { sql, params } = LayerPermissionsQueries.grantOnTable(
+            this.pgPool.quoteIdentifier(layerName),
+            privileges.join(', '),
+            this.pgPool.quoteIdentifier(username),
+        );
+        await this.pgPool.query(sql, params);
     }
 
-    async revokeAll(layerName: string, usernames: string[]): Promise<void> {
-        for (const username of usernames) {
-            const { sql, params } = LayerPermissionsQueries.revokeAllOnTable(
-                this.pgPool.quoteIdentifier(layerName),
-                this.pgPool.quoteIdentifier(username),
-            );
-            await this.pgPool.query(sql, params);
-        }
+    async revokeAll(layerName: string, username: string): Promise<void> {
+        const { sql, params } = LayerPermissionsQueries.revokeAllOnTable(
+            this.pgPool.quoteIdentifier(layerName),
+            this.pgPool.quoteIdentifier(username),
+        );
+        await this.pgPool.query(sql, params);
     }
 }

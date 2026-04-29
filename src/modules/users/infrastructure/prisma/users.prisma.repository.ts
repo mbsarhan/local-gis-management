@@ -90,29 +90,6 @@ export class UsersPrismaRepository implements IUsersRepository {
         );
         await this.pgPool.query(createSql, createParams);
 
-        // 3. Apply all existing layer permissions for this user type
-        const permissions = await this.prisma.role_user_type_layer_view.findMany({
-            where: { id_user_type: idUserType },
-            include: { layer: true },
-        });
-
-        for (const perm of permissions) {
-            if (!perm.layer?.name) continue;
-
-            const privileges: string[] = [];
-            if (perm.select_b) privileges.push('SELECT');
-            if (perm.insert_b) privileges.push('INSERT');
-            if (perm.update_b) privileges.push('UPDATE');
-            if (perm.delete_b) privileges.push('DELETE');
-
-            if (privileges.length === 0) continue;
-
-            await this.pgPool.query(
-                `GRANT ${privileges.join(', ')} ON TABLE ${this.pgPool.quoteIdentifier(perm.layer.name)} TO ${this.pgPool.quoteIdentifier(username)}`,
-                []
-            );
-        }
-
         return user.id;
     }
 

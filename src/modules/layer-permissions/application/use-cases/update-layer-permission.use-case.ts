@@ -7,19 +7,11 @@ export class UpdateLayerPermissionUseCase {
     constructor(
         @Inject(LAYER_PERMISSIONS_REPOSITORY)
         private readonly repo: ILayerPermissionsRepository,
-    ) { }
+    ) {}
 
-    async execute(
-        id: number,
-        selectB: boolean,
-        insertB: boolean,
-        updateB: boolean,
-        deleteB: boolean,
-    ) {
+    async execute(id: number, selectB: boolean, insertB: boolean, updateB: boolean, deleteB: boolean) {
         const existing = await this.repo.findById(id);
-        if (!existing) {
-            throw new NotFoundException('Layer permission not found');
-        }
+        if (!existing) throw new NotFoundException('Layer permission not found');
 
         const updated = new LayerPermission(id, existing.idUserType, existing.idLayer, selectB, insertB, updateB, deleteB);
         if (!updated.hasAtLeastOneFlag()) {
@@ -27,15 +19,14 @@ export class UpdateLayerPermissionUseCase {
         }
 
         const layerName = await this.repo.getLayerName(existing.idLayer);
-        if (!layerName) {
-            throw new BadRequestException('Layer not found');
-        }
+        if (!layerName) throw new BadRequestException('Layer not found');
+
+        const username = await this.repo.getUsernameById(existing.idUserType);
+        if (!username) throw new NotFoundException('User not found or inactive');
 
         await this.repo.update(id, selectB, insertB, updateB, deleteB);
-
-        const usernames = await this.repo.getUsernamesByType(existing.idUserType);
-        await this.repo.revokeAll(layerName, usernames);
-        await this.repo.applyGrants(layerName, usernames, updated.buildGrantPrivileges());
+        await this.repo.revokeAll(layerName, username);
+        await this.repo.applyGrants(layerName, username, updated.buildGrantPrivileges());
 
         return { id };
     }

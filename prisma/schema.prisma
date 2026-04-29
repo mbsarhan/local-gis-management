@@ -315,17 +315,17 @@ model road_type {
 }
 
 model role_user_type_layer_view {
-  id           Int        @id @default(autoincrement())
-  id_user_type Int?
-  id_layer     Int?
-  insert_b     Boolean?   @default(false)
-  update_b     Boolean?   @default(false)
-  delete_b     Boolean?   @default(false)
-  select_b     Boolean?   @default(false)
-  user_type    user_type? @relation(fields: [id_user_type], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  layer        layer?     @relation(fields: [id_layer], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id       Int      @id @default(autoincrement())
+  id_user  Int?
+  id_layer Int?
+  insert_b Boolean? @default(false)
+  update_b Boolean? @default(false)
+  delete_b Boolean? @default(false)
+  select_b Boolean? @default(false)
+  users    users?   @relation(fields: [id_user], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  layer    layer?   @relation(fields: [id_layer], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
-  @@unique([id_user_type, id_layer])
+  @@unique([id_user, id_layer])
 }
 
 model roof {
@@ -463,7 +463,6 @@ model user_type {
   id_who                    Int?
   user_interfaces           user_interfaces[]
   users                     users[]
-  role_user_type_layer_view role_user_type_layer_view[]
 }
 
 model users {
@@ -486,6 +485,7 @@ model users {
   user_privilege                                                               user_privilege[]
   group                                                                        group?                      @relation(fields: [id_group], references: [id], onDelete: NoAction, onUpdate: NoAction)
   user_type                                                                    user_type?                  @relation(fields: [id_user_type], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  role_user_type_layer_view role_user_type_layer_view[]
 }
 
 model version {
