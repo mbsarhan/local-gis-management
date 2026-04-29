@@ -34,4 +34,5 @@ const useCases = [
         ...useCases,
     ],
 })
+
 export class LayerPermissionsModule {}
