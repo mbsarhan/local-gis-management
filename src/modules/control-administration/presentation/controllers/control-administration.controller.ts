@@ -74,7 +74,7 @@ export class ControlAdministrationController {
   }
 
   @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT) // تعيد 204 في حال النجاح بدون محتوى
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'حذف ضابطة تنظيمية', description: 'محمي: يتطلب Bearer access token' })
   @ApiParam({ name: 'id', type: Number, description: 'معرّف الضابطة' })
   @ApiResponse({ status: 204, description: 'تم حذف الضابطة بنجاح' })

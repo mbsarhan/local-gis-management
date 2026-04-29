@@ -3,7 +3,6 @@ import { ControlAdministrationEntity } from '../../domain/entities/control-admin
 
 export class ControlAdministrationMapper {
   static toDomain(raw: any): ControlAdministrationEntity {
-    // استخراج الوحدات القياسية من الـ Nested Include الذي عرفناه في الـ Repository
     const units = raw.community?.community_unit;
 
     return new ControlAdministrationEntity(
@@ -11,7 +10,6 @@ export class ControlAdministrationMapper {
       raw.id_community,                           // id_community
       raw.id_type_regulatory_area,                // id_type_regulatory_area
       
-      // منطق الـ Fallback: نأخذ من جدول الوحدات أولاً، وإذا لم يوجد نأخذ القيمة من جدول الضابطة
       units?.id_unit_minimum_property_area ?? (raw.minimum_property_area ? Number(raw.minimum_property_area) : null),
       units?.id_unit_maximum_property_area ?? (raw.maximum_property_area ? Number(raw.maximum_property_area) : null),
       
@@ -31,7 +29,6 @@ export class ControlAdministrationMapper {
       raw.height_of_ground_floors ? Number(raw.height_of_ground_floors) : null,
       raw.investment_factor ? Number(raw.investment_factor) : null,
 
-      // الحقول الإضافية التي أضفتها في الـ Entity (Optional fields)
       raw.community?.community_name,              // community_name
       raw.type_regulatory_area?.name              // type_regulatory_area_name
     );
@@ -39,7 +36,6 @@ export class ControlAdministrationMapper {
 
   static toPersistence(entity: ControlAdministrationEntity): Partial<PrismaControlAdmin> {
     return {
-      // هنا نخزن المعرفات فقط في جدول الضابطة الأساسي
       id_community: entity.id_community,
       id_type_regulatory_area: entity.id_type_regulatory_area,
       
