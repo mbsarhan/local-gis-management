@@ -9,6 +9,6 @@ export class GetLayerPermissionsByUserTypeUseCase {
     ) {}
 
     async execute(idUserType: number) {
-        return this.repo.findByUserType(idUserType);
+        return this.repo.findByUser(idUserType);
     }
 }
